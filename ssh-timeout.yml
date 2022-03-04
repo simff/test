@@ -2,6 +2,8 @@
 -
   become: true
   hosts: all
+  become_method: sudo
+  become_user: root
   tasks:
   - name: Change SSH session timeout
     lineinfile: dest=/etc/ssh/sshd_config
