@@ -1,0 +1,24 @@
+---
+-
+  become: true
+  hosts: all
+  tasks:
+  - name: Change SSH session timeout
+    lineinfile: dest=/etc/ssh/sshd_config
+                regexp='^#TCPKeepAlive'
+                insertbefore=BOF
+                line='TCPKeepAlive yes'
+  - name: Change SSH session timeout
+    lineinfile: dest=/etc/ssh/sshd_config
+                regexp='^#ClientAliveInterval'
+                insertbefore=BOF
+                line='ClientAliveInterval 60'
+  - name: Change SSH session timeout
+    lineinfile: dest=/etc/ssh/sshd_config
+                regexp='^#ClientAliveCountMax'
+                insertbefore=BOF
+                line='ClientAliveCountMax 60'
+  - name: Restart service sshd
+    ansible.builtin.service:
+      name: sshd
+      state: restarted
