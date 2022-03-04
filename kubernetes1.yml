@@ -1,0 +1,53 @@
+---
+-
+  become: true
+  hosts: all
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Changes /etc/hosts
+    ansible.builtin.lineinfile:
+      path: /etc/hosts
+      state: absent
+      regexp:
+        - '^#'
+        - '^127'
+        - '^::'
+
+  - name: Add host localhost
+    ansible.builtin.lineinfile:
+      path: /etc/hosts
+      line: 127.0.0.1 localhost
+      create: yes
+  - name: Add host 192.168.1.210
+    ansible.builtin.lineinfile:
+      path: /etc/hosts
+      line: 192.168.1.210 kube-master-01
+      create: yes
+  - name: Add host 192.168.1.211
+    ansible.builtin.lineinfile:
+      path: /etc/hosts
+      line: 192.168.1.211 kube-node-01
+      create: yes
+  - name: Add host 192.168.1.212
+    ansible.builtin.lineinfile:
+      path: /etc/hosts
+      line: 192.168.1.212 kube-node-02
+      create: yes
+
+
+#                regexp='^::'
+#                insertbefore=BOF
+#
+#                line='TCPKeepAlive yes'
+
+#  - name: Update APT
+#    apt:
+#      update_cache: yes
+#
+#  - name: Pre Install
+#      apt:
+#        name:
+#        - apt-transport-https
+#        - software-properties-common
+#        - wget
