@@ -1,0 +1,151 @@
+---
+-
+  become: true
+  hosts: all
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Changes /etc/hosts
+    ansible.builtin.lineinfile:
+      path: /etc/hosts
+      state: absent
+      regexp:
+        - '^#'
+        - '^127'
+        - '^::'
+
+  - name: Add host /etc/hosts
+    copy:
+      dest: "/etc/hosts"
+      content: |
+        127.0.0.1 localhost
+        192.168.1.210 kube-master-01
+        192.168.1.211 kube-node-01
+        192.168.1.212 kube-node-02
+
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install packeges
+    apt:
+      name:
+        - apt-transport-https
+        - curl
+        - wget
+        - git
+
+  - name: Swap-Off
+    shell: swapoff -a
+
+  - name: Changes /etc/fstab
+    ansible.builtin.lineinfile:
+      path: /etc/fstab
+      state: absent
+      regexp: 'swap'
+
+  - name: Changes /etc/modules-load.d/modules.conf
+    ansible.builtin.lineinfile:
+      path: /etc/modules-load.d/modules.conf
+      line: br_netfilter \noverlay
+      create: yes
+
+  - name: Creating /etc/sysctl.d/kube.conf
+    ansible.builtin.lineinfile:
+      path: /etc/sysctl.d/kube.conf
+      line: net.bridge.bridge-nf-call-iptables = 1
+      create: yes
+
+  - name: UFW disabled
+    community.general.ufw:
+      state: disabled
+
+  - name: Install Docker
+    apt:
+      name:
+        - docker
+        - docker.io
+
+  - name: Creating /etc/docker/daemon.json
+    copy:
+      dest: "/etc/docker/daemon.json"
+      content: |
+        {
+        "exec-opts": ["native.cgroupdriver=systemd"],
+        "log-driver": "json-file",
+        "log-opts": {
+        "max-size": "100m"
+        },
+        "storage-driver": "overlay2",
+        "storage-opts": [
+        "overlay2.override_kernel_check=true"
+        ]
+        }
+
+  - name: Restart Docker
+    service:
+      name: "docker"
+      state: "restarted"
+      enabled: "yes"
+
+  - name: Add apt-key
+    shell: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+
+  - name: Creating /etc/apt/sources.list.d/kubernetes.list
+    ansible.builtin.lineinfile:
+      path: /etc/apt/sources.list.d/kubernetes.list
+      line: deb https://apt.kubernetes.io/ kubernetes-xenial main
+      create: yes
+
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install kubelet kubeadm kubectl
+    apt:
+      name:
+        - kubelet
+        - kubeadm
+        - kubectl
+
+  - name: Disabled update kubelet kubeadm kubectl
+    shell: apt-mark hold kubelet kubeadm kubectl
+
+
+-
+  become: true
+  hosts: kube-masters
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Init pod-network
+    shell: kubeadm init --pod-network-cidr=172.20.0.0/16
+
+  - name: Export KUBECONFIG
+    shell: export KUBECONFIG=/etc/kubernetes/admin.conf
+
+  - name: Export KUBECONFIG config
+    ansible.builtin.lineinfile:
+      path: /etc/environment
+      line: export KUBECONFIG=/etc/kubernetes/admin.conf
+      create: yes
+
+  - name: Apply flannel
+    shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+
+  - name: get join command
+    shell: kubeadm token create --print-join-command
+    register: join_command_raw
+
+  - name: set join command
+    set_fact:
+      join_command: "{{ join_command_raw.stdout_lines[0] }}"
+
+
+- hosts: kube-nodes
+  become: yes
+  become_method: sudo
+  become_user: root
+  tasks:
+    - name: join cluster
+      shell: "{{ join_command_raw.stdout_lines[0] }}"
