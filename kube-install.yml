@@ -14,26 +14,14 @@
         - '^127'
         - '^::'
 
-  - name: Add host localhost
-    ansible.builtin.lineinfile:
-      path: /etc/hosts
-      line: 127.0.0.1 localhost
-      create: yes
-  - name: Add host 192.168.1.210
-    ansible.builtin.lineinfile:
-      path: /etc/hosts
-      line: 192.168.1.210 kube-master-01
-      create: yes
-  - name: Add host 192.168.1.211
-    ansible.builtin.lineinfile:
-      path: /etc/hosts
-      line: 192.168.1.211 kube-node-01
-      create: yes
-  - name: Add host 192.168.1.212
-    ansible.builtin.lineinfile:
-      path: /etc/hosts
-      line: 192.168.1.212 kube-node-02
-      create: yes
+  - name: Add host /etc/hosts
+    copy:
+      dest: "/etc/hosts"
+      content: |
+        127.0.0.1 localhost
+        192.168.1.210 kube-master-01
+        192.168.1.211 kube-node-01
+        192.168.1.212 kube-node-02
 
   - name: Update APT
     apt:
@@ -122,25 +110,3 @@
 
   - name: Disabled update kubelet kubeadm kubectl
     shell: apt-mark hold kubelet kubeadm kubectl
-
-
--
-  become: true
-  hosts: kube-masters
-  become_method: sudo
-  become_user: root
-  tasks:
-  - name: Init pod-network
-    shell: kubeadm init --pod-network-cidr=172.20.0.0/16
-
-  - name: Export KUBECONFIG
-    shell: export KUBECONFIG=/etc/kubernetes/admin.conf
-
-  - name: Export KUBECONFIG config
-    ansible.builtin.lineinfile:
-      path: /etc/environment
-      line: export KUBECONFIG=/etc/kubernetes/admin.conf
-      create: yes
-
-  - name: Apply flannel
-    shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
