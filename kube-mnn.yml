@@ -5,15 +5,6 @@
   become_method: sudo
   become_user: root
   tasks:
-  - name: Changes /etc/hosts
-    ansible.builtin.lineinfile:
-      path: /etc/hosts
-      state: absent
-      regexp:
-        - '^#'
-        - '^127'
-        - '^::'
-
   - name: Add host /etc/hosts
     copy:
       dest: "/etc/hosts"

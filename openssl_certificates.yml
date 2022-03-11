@@ -1,0 +1,29 @@
+---
+-
+  become: true
+  hosts: kube-master-01
+  become_method: sudo
+  become_user: root
+  vars:
+    - server_hostname: myhost.ru
+    - key_size: 4096
+    - passphrase: # Set if you want passphrase
+    - key_type: RSA # Others include DSA, ECC, Ed25519, Ed448, X25519, X448
+    - country_name: RU
+    - email_address: admin@myhost.ru
+    - organization_name: IT-test
+  tasks:
+    - name: Generate an OpenSSL private key
+      openssl_privatekey:
+        path: "/etc/apache2/certificate/apache.key"
+        size: "{{ key_size }}"
+        type: "{{ key_type }}"
+        backup: yes
+    - name: Generate an OpenSSL Certificate Signing Request with Subject information
+      openssl_csr:
+        path: "/etc/apache2/certificate/apache-certificate.crt"
+        privatekey_path: "/etc/apache2/certificate/apache.key"
+        country_name: "{{ country_name }}"
+        organization_name: "{{ organization_name }}"
+        email_address: "{{ email_address }}"
+        common_name: "{{ server_hostname }}"

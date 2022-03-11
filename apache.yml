@@ -1,0 +1,55 @@
+---
+-
+  become: true
+  hosts: kube-master-01
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install packeges
+    apt:
+      name:
+        - apache2
+        - openssl
+
+  - name: Enable apache2 module rewrite
+    apache2_module:
+      state: present
+      name: rewrite
+
+  - name: Enable apache2 module headers
+    apache2_module:
+      state: present
+      name: headers
+
+  - name: Enable apache2 module proxy
+    apache2_module:
+      state: present
+      name: proxy
+
+  - name: Enable apache2 module proxy_http
+    apache2_module:
+      state: present
+      name: proxy_http
+
+  - name: Enable apache2 module ssl
+    apache2_module:
+      state: present
+      name: ssl
+
+  - name: Update a /etc/apache2/apache2.conf
+    blockinfile:
+        dest: /etc/apache2/apache2.conf
+        block: |
+          <Directory /var/www/html>
+          AllowOverride All
+          </Directory>
+
+  - name: Create a /etc/apache2/certificate
+    ansible.builtin.file:
+      path: /etc/apache2/certificate
+      state: directory
+      mode: '0777'

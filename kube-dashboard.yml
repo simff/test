@@ -1,0 +1,122 @@
+---
+-
+  become: true
+  hosts: kube-master-01
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install packeges
+    apt:
+      name:
+        - curl
+        - wget
+        - mlocate
+
+  - name: Pause for 1 minutes to build app cache
+    pause:
+      minutes: 1
+
+  - name: Create a /opt/download
+    ansible.builtin.file:
+      path: /opt/download
+      state: directory
+      mode: '0777'
+
+  - name: Download kubernetes-dashboard.yaml
+    get_url:
+      url: https://raw.githubusercontent.com/kubernetes/dashboard/master/aio/deploy/recommended.yaml
+      dest: /opt/download
+      mode: '0444'
+
+  - name: Create dashboard
+    shell: kubectl create -f /opt/download/recommended.yaml
+
+  - name: Create serviceaccount
+    shell: kubectl create serviceaccount dashboard-admin-sa
+
+  - name: Create clusterrolebinding
+    shell: kubectl create clusterrolebinding dashboard-admin-sa --clusterrole=cluster-admin --serviceaccount=default:dashboard-admin-sa
+
+  - name: Install packeges
+    apt:
+      name:
+        - apache2
+        - openssl
+
+  - name: Enable apache2 module rewrite
+    apache2_module:
+      state: present
+      name: rewrite
+
+  - name: Enable apache2 module headers
+    apache2_module:
+      state: present
+      name: headers
+
+  - name: Enable apache2 module proxy
+    apache2_module:
+      state: present
+      name: proxy
+
+  - name: Enable apache2 module proxy_http
+    apache2_module:
+      state: present
+      name: proxy_http
+
+  - name: Enable apache2 module ssl
+    apache2_module:
+      state: present
+      name: ssl
+
+  - name: Update a /etc/apache2/apache2.conf
+    blockinfile:
+        dest: /etc/apache2/apache2.conf
+        block: |
+          <Directory /var/www/html>
+          AllowOverride All
+          </Directory>
+
+  - name: Create a /etc/apache2/certificate
+    ansible.builtin.file:
+      path: /etc/apache2/certificate
+      state: directory
+      mode: '0777'
+
+  - name: Make ssl certificate
+    shell: openssl req -new -newkey rsa:4096 -x509 -sha256 -days 365 -nodes -out /etc/apache2/certificate/apache-certificate.crt -keyout /etc/apache2/certificate/apache.key -subj "/C=RU/ST=Moscow/L=Moscow/O=Security/OU=IT Department/CN=www.example.ru"
+
+  - name: Create /etc/apache2/sites-enabled/000-default.conf
+    copy:
+        dest: "/etc/apache2/sites-enabled/000-default.conf"
+        content: |
+          <VirtualHost *:80>
+            RewriteEngine On
+            RewriteCond %{HTTPS} !=on
+            RewriteRule ^/?(.*) https://%{SERVER_NAME}/$1 [R=301,L]
+          </virtualhost>
+          <VirtualHost *:443>
+            ServerAdmin webmaster@localhost
+            DocumentRoot /var/www/html
+            ErrorLog ${APACHE_LOG_DIR}/error.log
+            CustomLog ${APACHE_LOG_DIR}/access.log combined
+            SSLEngine on
+            SSLCertificateFile /etc/apache2/certificate/apache-certificate.crt
+            SSLCertificateKeyFile /etc/apache2/certificate/apache.key
+          <Location />
+            ProxyPass http://127.0.0.1:8001/
+            ProxyPassReverse http://127.0.0.1:8001/
+          </Location>
+          </VirtualHost>
+
+  - name: Restart apache2
+    service:
+        name: "apache2"
+        state: "restarted"
+        enabled: "yes"
+
+  - name: Run kubectl proxy
+    shell: kubectl proxy &

@@ -1,0 +1,9 @@
+---
+-
+  become: true
+  hosts: kube-master-01
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Make ssl certificate
+    shell: openssl req -new -newkey rsa:4096 -x509 -sha256 -days 365 -nodes -out /etc/apache2/certificate/apache-certificate.crt -keyout /etc/apache2/certificate/apache.key -subj "/C=RU/ST=Moscow/L=Moscow/O=Security/OU=IT Department/CN=www.example.ru"
