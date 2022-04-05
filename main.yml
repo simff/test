@@ -7,3 +7,6 @@
 
 - name: Setup Helm
   import_playbook: helm.yml
+
+#- name: Setup nginx-ingress-controller
+#  import_playbook: nginx-ingress-controller.yml

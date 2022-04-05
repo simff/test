@@ -120,4 +120,3 @@
 
   - name: Run kubectl proxy
     shell: kubectl proxy &
-

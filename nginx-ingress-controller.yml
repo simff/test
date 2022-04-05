@@ -1,0 +1,15 @@
+---
+-
+  become: true
+  hosts: kube-master-01
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Helm repo add
+    shell: helm repo add nginx-stable https://helm.nginx.com/stable
+  - name: Helm repo update
+    shell: helm repo update
+  - name: Create namespace ingress-nginx
+    shell: kubectl create ns ingress-nginx
+  - name: Install ingress-nginx
+    shell: helm install my nginx-stable/nginx-ingress -n ingress-nginx
