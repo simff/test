@@ -25,7 +25,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: my-web-base-service
+  name: base
   labels:
      env  : test
      owner: AlexeySimonov
