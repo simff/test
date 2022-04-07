@@ -1,0 +1,60 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: my-web-autoscaling
+  labels:
+    app : my-web-k8s
+spec:
+  selector:
+    matchLabels:
+      project: local-web
+  template:
+    metadata:
+      labels:
+        project: local-web   # Service will look for those PODS Labels!!!
+    spec:
+      containers:
+        - name : my-web
+          image: simff/nginx-php-test:latest
+          ports:
+            - containerPort: 80
+
+---
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: my-autoscaling
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v2beta1v1
+    kind: Deployment
+    name: my-web-autoscaling
+  minReplicas: 2
+  maxReplicas: 4
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      targetAverageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      targetAverageUtilization: 70
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-autoscaling-service
+  labels:
+     env  : prod
+     owner: AlexeySimonov
+spec:
+  selector:
+    project: local-web      # Selecting PODs with those Labels
+  ports:
+    - name      : app-listener
+      protocol  : TCP
+      port      : 80  # Port on Load Balancer
+      targetPort: 80  # Port on Pod
+  type: LoadBalancer

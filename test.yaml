@@ -1,0 +1,38 @@
+---
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: my-web-base
+  labels:
+    app : my-web-k8s-base
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      project: local-web-base
+  template:
+    metadata:
+      labels:
+        project: local-web-base   # Service will look for those PODS Labels!!!
+    spec:
+      containers:
+        - name : web-base
+          image: simff/ng:base
+          ports:
+            - containerPort: 80
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-web-base-service
+  labels:
+     env  : test
+     owner: AlexeySimonov
+spec:
+  selector:
+    project: local-web-base      # Selecting PODs with those Labels
+  ports:
+    - protocol  : TCP
+      port      : 80
+      targetPort: 80
