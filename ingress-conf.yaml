@@ -1,7 +1,8 @@
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: ingress-myservice
+  name: base.local.net
 spec:
   rules:
   - host: base.local.net
@@ -14,4 +15,24 @@ spec:
             name: base
             port:
               number: 80
+  ingressClassName: nginx
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana.my
+spec:
+  rules:
+  - host: grafana.my
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: grafana
+            port:
+              number: 3000
+
   ingressClassName: nginx

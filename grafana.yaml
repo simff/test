@@ -1,0 +1,48 @@
+---
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  labels:
+    app : my-grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      project: local-grafana
+  template:
+    metadata:
+      labels:
+        project: local-grafana   # Service will look for those PODS Labels!!!
+    spec:
+      containers:
+      - image: grafana/grafana
+        imagePullPolicy: Always
+        name: grafana
+        ports:
+        - containerPort: 3000
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /var/lib/grafana
+          name: data
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+           claimName: my-claim
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  labels:
+     env  : grafana
+     owner: AlexeySimonov
+spec:
+  selector:
+    project: local-grafana      # Selecting PODs with those Labels
+  ports:
+    - protocol  : TCP
+      port      : 3000
+      targetPort: 3000

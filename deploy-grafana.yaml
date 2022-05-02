@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"labels":{"app.kubernetes.io/name":"grafana","app.kubernetes.io/part-of":"ingress-nginx"},"name":"grafana","namespace":"ingress-nginx"},"spec":{"selector":{"matchLabels":{"app.kubernetes.io/name":"grafana","app.kubernetes.io/part-of":"ingress-nginx"}},"strategy":{"rollingUpdate":{"maxSurge":1,"maxUnavailable":1},"type":"RollingUpdate"},"template":{"metadata":{"labels":{"app.kubernetes.io/name":"grafana","app.kubernetes.io/part-of":"ingress-nginx"}},"spec":{"containers":[{"image":"grafana/grafana","name":"grafana","ports":[{"containerPort":3000,"protocol":"TCP"}],"resources":{"limits":{"cpu":"500m","memory":"2500Mi"},"requests":{"cpu":"100m","memory":"100Mi"}},"volumeMounts":[{"mountPath":"/var/lib/grafana","name":"data"}]}],"restartPolicy":"Always","volumes":[{"emptyDir":{},"name":"data"}]}}}}
+  creationTimestamp: "2022-04-07T19:17:59Z"
+  generation: 1
+  labels:
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/part-of: ingress-nginx
+  name: grafana
+  namespace: ingress-nginx
+  resourceVersion: "3548"
+  uid: a7f15dc1-4427-45ba-842a-541dbfa6d254
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: grafana
+      app.kubernetes.io/part-of: ingress-nginx
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app.kubernetes.io/name: grafana
+        app.kubernetes.io/part-of: ingress-nginx
+    spec:
+      containers:
+      - image: grafana/grafana
+        imagePullPolicy: Always
+        name: grafana
+        ports:
+        - containerPort: 3000
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 500m
+            memory: 2500Mi
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /var/lib/grafana
+          name: data
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - emptyDir: {}
+        name: data
+status:
+  availableReplicas: 1
+  conditions:
+  - lastTransitionTime: "2022-04-07T19:17:59Z"
+    lastUpdateTime: "2022-04-07T19:17:59Z"
+    message: Deployment has minimum availability.
+    reason: MinimumReplicasAvailable
+    status: "True"
+    type: Available
+  - lastTransitionTime: "2022-04-07T19:17:59Z"
+    lastUpdateTime: "2022-04-07T19:18:18Z"
+    message: ReplicaSet "grafana-7875875dcf" has successfully progressed.
+    reason: NewReplicaSetAvailable
+    status: "True"
+    type: Progressing
+  observedGeneration: 1
+  readyReplicas: 1
+  replicas: 1
+  updatedReplicas: 1

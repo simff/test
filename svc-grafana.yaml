@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"labels":{"app.kubernetes.io/name":"grafana","app.kubernetes.io/part-of":"ingress-nginx"},"name":"grafana","namespace":"ingress-nginx"},"spec":{"ports":[{"port":3000,"protocol":"TCP","targetPort":3000}],"selector":{"app.kubernetes.io/name":"grafana","app.kubernetes.io/part-of":"ingress-nginx"},"type":"NodePort"}}
+  creationTimestamp: "2022-04-07T19:17:59Z"
+  labels:
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/part-of: ingress-nginx
+  name: grafana
+  namespace: ingress-nginx
+  resourceVersion: "3493"
+  uid: 1bbcde68-1589-421c-91ee-ba0f952f62f5
+spec:
+  clusterIP: 10.101.102.222
+  clusterIPs:
+  - 10.101.102.222
+  externalTrafficPolicy: Cluster
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - nodePort: 30527
+    port: 3000
+    protocol: TCP
+    targetPort: 3000
+  selector:
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/part-of: ingress-nginx
+  sessionAffinity: None
+  type: NodePort
+status:
+  loadBalancer: {}
