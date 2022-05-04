@@ -28,7 +28,7 @@ spec:
       volumes:
       - name: data
         persistentVolumeClaim:
-           claimName: my-claim
+           claimName: fileshare
 
 
 ---
