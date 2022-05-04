@@ -1,0 +1,4 @@
+#!/bin/bash
+sleep 30 
+ssh localhost "kubectl port-forward -n ingress-nginx --address 192.168.1.210 svc/ingress-nginx-controller 80:80"
+

@@ -1,0 +1,24 @@
+[Unit]
+
+Description=Kubernetes Port Porward
+
+After=kubelet.service
+
+[Service]
+
+ExecStart=/usr/local/bin/port-forward
+
+Type=idle
+
+KillMode=process
+
+SyslogIdentifier=port-forward.service
+
+SyslogFacility=daemon
+
+Restart=on-failure
+
+[Install]
+
+WantedBy=multi-user.target
+
