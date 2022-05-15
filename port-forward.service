@@ -11,7 +11,7 @@ ExecStart=/usr/local/bin/port-forward
 Type=idle
 
 KillMode=process
-
+# ssh-copy-id localhost
 SyslogIdentifier=port-forward.service
 
 SyslogFacility=daemon
