@@ -1,0 +1,9 @@
+---
+-
+  become: true
+  hosts: kube-master-01
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Install Atom
+    shell: snap install atom --classic

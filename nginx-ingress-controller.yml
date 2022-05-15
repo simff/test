@@ -5,11 +5,9 @@
   become_method: sudo
   become_user: root
   tasks:
-  - name: Helm repo add
-    shell: helm repo add nginx-stable https://helm.nginx.com/stable
-  - name: Helm repo update
-    shell: helm repo update
-  - name: Create namespace ingress-nginx
-    shell: kubectl create ns ingress-nginx
   - name: Install ingress-nginx
-    shell: helm install my nginx-stable/nginx-ingress -n ingress-nginx
+    shell: helm upgrade --install ingress-nginx ingress-nginx --repo https://kubernetes.github.io/ingress-nginx --namespace ingress-nginx --create-namespace
+  - name: Upgrade ingress-nginx for prometheus monitor
+    shell: helm upgrade ingress-nginx ingress-nginx --repo https://kubernetes.github.io/ingress-nginx --namespace ingress-nginx --set controller.metrics.enabled=true --set-string controller.podAnnotations."prometheus\.io/scrape"="true" --set-string controller.podAnnotations."prometheus\.io/port"="10254"
+  - name: Install prometheus
+    shell: kubectl apply --kustomize github.com/kubernetes/ingress-nginx/deploy/prometheus/
