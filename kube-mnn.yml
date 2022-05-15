@@ -107,7 +107,7 @@
       minutes: 1
 -
   become: true
-  hosts: kube-master-01
+  hosts: k8s-master-01
   become_method: sudo
   become_user: root
   tasks:
@@ -132,7 +132,7 @@
 
 -
   become: true
-  hosts: kube-master-01
+  hosts: k8s-master-01
   become_method: sudo
   become_user: root
   tasks:
@@ -151,4 +151,4 @@
   become_user: root
   tasks:
   - name: join cluster
-    shell: "{{ hostvars['kube-master-01'].join_command }}"
+    shell: "{{ hostvars['k8s-master-01'].join_command }}"
