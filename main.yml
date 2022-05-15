@@ -2,11 +2,12 @@
 - name: Setup Kubernetes
   import_playbook: kube-mnn.yml
 
-- name: Setup Kubernetes Dashboard
-  import_playbook: kube-dashboard.yml
+#- name: Setup Kubernetes Dashboard
+#  import_playbook: kube-dashboard.yml
 
 - name: Setup Helm
   import_playbook: helm.yml
 
-#- name: Setup nginx-ingress-controller
-#  import_playbook: nginx-ingress-controller.yml
+# install using helm
+- name: Setup nginx-ingress-controller
+  import_playbook: nginx-ingress-controller.yml
