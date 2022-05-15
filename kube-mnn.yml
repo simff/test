@@ -10,9 +10,9 @@
       dest: "/etc/hosts"
       content: |
         127.0.0.1 localhost
-        192.168.1.210 kube-master-01
-        192.168.1.211 kube-node-01
-        192.168.1.212 kube-node-02
+        192.168.1.210 k8s-master-01
+        192.168.1.211 k8s-node-01
+        192.168.1.212 k8s-node-02
 
   - name: Update APT
     apt:
