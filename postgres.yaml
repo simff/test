@@ -4,7 +4,7 @@ kind: ConfigMap
 metadata:
   name: postgres-configmap
 data:
-  POSTGRES_DB: myapp_production
+  POSTGRES_DB: base_production
 
 ---
 apiVersion: v1
@@ -14,7 +14,7 @@ metadata:
 data:
   POSTGRES_PASSWORD: MTIzcXdl
 stringData:
-  POSTGRES_USER: root
+  POSTGRES_USER: admin
 
 ---
 apiVersion: apps/v1
@@ -22,7 +22,7 @@ kind: Deployment
 metadata:
   name: postgres
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: postgres
@@ -42,12 +42,12 @@ spec:
           - configMapRef:
               name: postgres-configmap
         volumeMounts:
-        - name: postgres-database-storage
-          mountPath: /var/lib/pgsql/data
+        - mountPath: /var/lib/postgresql
+          name: data
       volumes:
-      - name: postgres-database-storage
+      - name: data
         persistentVolumeClaim:
-          claimName: files-psql
+           claimName: files-psql
 
 ---
 apiVersion: v1
@@ -56,7 +56,7 @@ metadata:
   name: postgres
   labels:
      env  : postgres
-     owner: AlexeySimonov
+     owner: Alexey_Simonov
 spec:
   selector:
     app: postgres      # Selecting PODs with those Labels
