@@ -1,0 +1,78 @@
+---
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: redis
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-redis-master
+  labels:
+    type: local
+spec:
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: redis
+  nfs:
+    server: 192.168.1.210
+    path: /mnt/redis/master
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-redis-slave1
+  labels:
+    type: local
+spec:
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: redis
+  nfs:
+    server: 192.168.1.210
+    path: /mnt/redis/slave1
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-redis-slave2
+  labels:
+    type: local
+spec:
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: redis
+  nfs:
+    server: 192.168.1.210
+    path: /mnt/redis/slave2
+
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-for-master-redis
+  namespace: dev-redis
+spec:
+  storageClassName: redis
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
