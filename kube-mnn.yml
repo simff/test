@@ -15,7 +15,7 @@
 
   - name: Selinux Disabled
     lineinfile: dest=/etc/selinux/config
-                regexp='^SELINUX'
+                regexp='^SELINUX='
                 insertbefore=BOF
                 line='SELINUX=disabled'
 
