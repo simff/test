@@ -8,7 +8,7 @@
 - name: Setup Helm
   import_playbook: helm.yml
 
-#- name: Setup nginx-ingress-controller
+#- name: Setup nginx-ingress-controller with prometheus for grafana
 #  import_playbook: nginx-ingress-controller.yml
 
 - name: Setup Atom
