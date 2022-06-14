@@ -13,4 +13,6 @@
 
 - name: Setup Atom
   import_playbook: atom.yml
-  
+
+- name: Setup NFS-Server
+  import_playbook: nfs-server-k8s.yml

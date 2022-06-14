@@ -10,9 +10,14 @@
       dest: "/etc/hosts"
       content: |
         127.0.0.1 localhost
-        192.168.1.210 k8s-master-01
-        192.168.1.211 k8s-node-01
-        192.168.1.212 k8s-node-02
+        192.168.1.111 kube-master01
+        192.168.1.222 kube-node01
+
+  - name: Selinux Disabled
+    lineinfile: dest=/etc/selinux/config
+                regexp='^SELINUX'
+                insertbefore=BOF
+                line='SELINUX=disabled'
 
   - name: Update APT
     apt:
@@ -107,7 +112,7 @@
       minutes: 1
 -
   become: true
-  hosts: k8s-master-01
+  hosts: primary-master
   become_method: sudo
   become_user: root
   tasks:
@@ -132,7 +137,7 @@
 
 -
   become: true
-  hosts: k8s-master-01
+  hosts: primary-master
   become_method: sudo
   become_user: root
   tasks:
@@ -151,4 +156,4 @@
   become_user: root
   tasks:
   - name: join cluster
-    shell: "{{ hostvars['k8s-master-01'].join_command }}"
+    shell: "{{ hostvars['kube-master01'].join_command }}"  # primary master !!!
