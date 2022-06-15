@@ -5,7 +5,7 @@ metadata:
   name: grafana
 provisioner: example.com/external-nfs
 parameters:
-  server: kube-master-01
+  server: kube-master01
   path: /mnt/grafana
   readOnly: "false"
 
@@ -16,19 +16,8 @@ metadata:
   name: html
 provisioner: example.com/external-nfs
 parameters:
-  server: kube-master-01
+  server: kube-master01
   path: /mnt/html
-  readOnly: "false"
-
----
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: psql
-provisioner: example.com/external-nfs
-parameters:
-  server: kube-master-01
-  path: /mnt/psql
   readOnly: "false"
 
 ---
@@ -44,7 +33,7 @@ spec:
     - ReadWriteMany
   persistentVolumeReclaimPolicy: Retain
   nfs:
-    server: 192.168.1.210
+    server: 192.168.1.111
     path: /mnt/grafana
 
 ---
@@ -60,24 +49,8 @@ spec:
     - ReadWriteMany
   persistentVolumeReclaimPolicy: Retain
   nfs:
-    server: 192.168.1.210
+    server: 192.168.1.111
     path: /mnt/html
-
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: my-psql
-spec:
-  storageClassName: psql
-  capacity:
-    storage: 1Gi
-  accessModes:
-    - ReadWriteMany
-  persistentVolumeReclaimPolicy: Retain
-  nfs:
-    server: 192.168.1.210
-    path: /mnt/psql
 
 ---
 kind: PersistentVolumeClaim
@@ -105,15 +78,3 @@ spec:
     requests:
       storage: 1Gi
 
----
-kind: PersistentVolumeClaim
-apiVersion: v1
-metadata:
-  name: files-psql
-spec:
-  storageClassName: psql
-  accessModes:
-  - ReadWriteMany
-  resources:
-    requests:
-      storage: 1Gi
