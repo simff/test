@@ -111,30 +111,6 @@
   - name: Pause for 1 minutes to build app cache
     pause:
       minutes: 1
--
-  become: true
-  hosts: primary-master
-  become_method: sudo
-  become_user: root
-  tasks:
-  - name: Init pod-network
-    shell: kubeadm init --pod-network-cidr=10.244.0.0/16
-
-  - name: Export KUBECONFIG
-    shell: export KUBECONFIG=/etc/kubernetes/admin.conf
-
-  - name: Export KUBECONFIG config
-    ansible.builtin.lineinfile:
-      path: /etc/environment
-      line: export KUBECONFIG=/etc/kubernetes/admin.conf
-      create: yes
-
-  - name: Apply flannel
-    shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
-
-  - name: Pause for 1 minutes to build app cache
-    pause:
-      minutes: 1
 
 -
   become: true

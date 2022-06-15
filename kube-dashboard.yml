@@ -16,30 +16,54 @@
         - wget
         - mlocate
 
-  - name: Pause for 1 minutes to build app cache
-    pause:
-      minutes: 1
-
   - name: Create a /opt/download
     ansible.builtin.file:
       path: /opt/download
       state: directory
       mode: '0777'
 
-  - name: Download kubernetes-dashboard.yaml
+  - name: Download yaml file
     get_url:
-      url: https://raw.githubusercontent.com/kubernetes/dashboard/master/aio/deploy/recommended.yaml
+      url: https://raw.githubusercontent.com/kubernetes/dashboard/v2.5.0/aio/deploy/recommended.yaml
       dest: /opt/download
-      mode: '0444'
+      mode: '0777'
 
   - name: Create dashboard
-    shell: kubectl create -f /opt/download/recommended.yaml
+    shell: kubectl apply -f /opt/download/recommended.yaml
 
-  - name: Create serviceaccount
-    shell: kubectl create serviceaccount dashboard-admin-sa
+  - name: Pause for 1 minutes to build app cache
+    pause:
+      minutes: 1
 
-  - name: Create clusterrolebinding
-    shell: kubectl create clusterrolebinding dashboard-admin-sa --clusterrole=cluster-admin --serviceaccount=default:dashboard-admin-sa
+  - name: Create service account yaml
+    copy:
+        dest: "/opt/download/service-account.yaml"
+        content: |
+          ---
+          apiVersion: v1
+          kind: ServiceAccount
+          metadata:
+            name: admin-user
+            namespace: kubernetes-dashboard
+          ---
+          apiVersion: rbac.authorization.k8s.io/v1
+          kind: ClusterRoleBinding
+          metadata:
+            name: admin-user
+          roleRef:
+            apiGroup: rbac.authorization.k8s.io
+            kind: ClusterRole
+            name: cluster-admin
+          subjects:
+          - kind: ServiceAccount
+            name: admin-user
+            namespace: kubernetes-dashboard
+
+  - name: Create service account
+    shell: kubectl apply -f /opt/download/service-account.yaml
+
+  - name: Create dashboard account token /opt/download
+    shell: kubectl -n kubernetes-dashboard create token admin-user > /opt/download/dashboard-token
 
   - name: Install packeges
     apt:
@@ -118,5 +142,37 @@
         state: "restarted"
         enabled: "yes"
 
-  - name: Run kubectl proxy
-    shell: kubectl proxy &
+  - name: Create exec file proxy-dashboard
+    copy:
+        dest: "/usr/local/bin/proxy-dashboard"
+        content: |
+          #!/bin/bash
+          sudo kubectl proxy
+
+  - name: Change file permissions proxy-dashboard
+    ansible.builtin.file:
+      path: /usr/local/bin/proxy-dashboard
+      mode: '0777'
+
+  - name: Create service proxy
+    copy:
+        dest: "/etc/systemd/system/proxy-dashboard.service"
+        content: |
+          [Unit]
+          Description=Kubernetes Proxy
+          After=apache2.service
+          [Service]
+          ExecStart=/usr/local/bin/proxy-dashboard
+          Type=idle
+          KillMode=process
+          SyslogIdentifier=proxy-dashboard.service
+          SyslogFacility=daemon
+          Restart=on-failure
+          [Install]
+          WantedBy=multi-user.target
+
+  - name: Restart proxy-dashboard service
+    service:
+        name: "proxy-dashboard"
+        state: "restarted"
+        enabled: "yes"
