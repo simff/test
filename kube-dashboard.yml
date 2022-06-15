@@ -65,6 +65,12 @@
   - name: Create dashboard account token /opt/download
     shell: kubectl -n kubernetes-dashboard create token admin-user > /opt/download/dashboard-token
 
+  - name: Create readme-link
+    copy:
+        dest: "/opt/download/readme-link"
+        content: |
+          https://192.168.1.111/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/workloads?namespace=default
+
   - name: Install packeges
     apt:
       name:
@@ -135,6 +141,12 @@
             ProxyPassReverse http://127.0.0.1:8001/
           </Location>
           </VirtualHost>
+
+  - name: Disabled port 80 for ingress
+    lineinfile: dest=/etc/apache2/ports.conf
+                regexp='^Listen 80'
+                insertbefore=BOF
+                line='#Listen 80'
 
   - name: Restart apache2
     service:
