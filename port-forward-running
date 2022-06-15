@@ -1,0 +1,6 @@
+#!/bin/bash
+cp port-forward /usr/local/bin
+cp port-forward.service /etc/systemd/system
+systemctl enable port-forward
+service port-forward start
+
