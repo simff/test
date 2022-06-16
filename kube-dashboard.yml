@@ -70,6 +70,7 @@
         dest: "/opt/download/readme-link"
         content: |
           https://192.168.1.111/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/workloads?namespace=default
+          kubectl -n kubernetes-dashboard create token admin-user
 
   - name: Update APT
     apt:
