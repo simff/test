@@ -9,7 +9,7 @@
     apt:
       update_cache: yes
 
-  - name: Install packeges
+  - name: Install packeges for dashboard
     apt:
       name:
         - curl
@@ -71,7 +71,11 @@
         content: |
           https://192.168.1.111/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/workloads?namespace=default
 
-  - name: Install packeges
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install packeges for apache2
     apt:
       name:
         - apache2
