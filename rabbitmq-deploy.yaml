@@ -1,0 +1,71 @@
+---
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq
+  labels:
+    app : my-rabbitmq
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      project: local-rabbitmq
+  template:
+    metadata:
+      labels:
+        project: local-rabbitmq   # Service will look for those PODS Labels!!!
+    spec:
+      containers:
+      - image: rabbitmq:management
+        imagePullPolicy: Always
+        name: rabbitmq
+        ports:
+        - containerPort: 15672
+        - containerPort: 4369
+        - containerPort: 5672
+          protocol: TCP
+#        volumeMounts:
+#        - mountPath: /var/lib/grafana
+#          name: data
+#      volumes:
+#      - name: data
+#        persistentVolumeClaim:
+#           claimName: files-grafana
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+  labels:
+     env  : rabbitmq
+     owner: Alexey_Simonov
+spec:
+  selector:
+    project: local-rabbitmq      # Selecting PODs with those Labels
+  ports:
+    - protocol  : TCP
+      port      : 15672
+      targetPort: 15672
+      port      : 5672
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rabbitmq.my
+spec:
+  rules:
+  - host: rabbitmq.my
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: rabbitmq
+            port:
+              number: 15672
+
+  ingressClassName: nginx
