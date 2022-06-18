@@ -1,0 +1,39 @@
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: rabbitmq-log
+provisioner: example.com/external-nfs
+parameters:
+  server: kube-master01
+  path: /mnt/rabbitmq/log
+  readOnly: "false"
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: my-rmq-log
+spec:
+  storageClassName: rabbitmq-log
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: 192.168.1.111
+    path: /mnt/rabbitmq/log
+
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: rmq-log
+spec:
+  storageClassName: rabbitmq-log
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi

@@ -24,14 +24,19 @@ spec:
         - containerPort: 4369
         - containerPort: 5672
           protocol: TCP
-#        volumeMounts:
-#        - mountPath: /var/lib/grafana
-#          name: data
-#      volumes:
-#      - name: data
-#        persistentVolumeClaim:
-#           claimName: files-grafana
-
+        volumeMounts:
+        - mountPath: /var/lib/rabbitmq
+          name: rabbitmq-data
+        - mountPath: /var/log/rabbitmq
+          name: rabbitmq-data-log
+      volumes:
+      - name: rabbitmq-data
+        hostPath:
+          path: /data/rabbitmq
+          type: DirectoryOrCreate
+      - name: rabbitmq-data-log
+        persistentVolumeClaim:
+           claimName: rmq-log
 
 ---
 apiVersion: v1
