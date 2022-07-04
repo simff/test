@@ -1,0 +1,79 @@
+---
+-
+  become: true
+  hosts: all
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Add host /etc/hosts
+    copy:
+      dest: "/etc/hosts"
+      content: |
+        127.0.0.1 localhost
+        192.168.1.122 minikube
+
+  - name: Selinux Disabled
+    lineinfile: dest=/etc/selinux/config
+                regexp='^SELINUX='
+                insertbefore=BOF
+                line='SELINUX=disabled'
+  - name: UFW disabled
+    community.general.ufw:
+      state: disabled
+  - name: Changes sudoers
+    lineinfile: dest=/etc/sudoers
+                regexp='^%sudo'
+                insertbefore=BOF
+                line='%sudo	ALL=(ALL:ALL) NOPASSWD:ALL'
+  - name: Change SSH session timeout
+    lineinfile: dest=/etc/ssh/sshd_config
+                regexp='^#TCPKeepAlive'
+                insertbefore=BOF
+                line='TCPKeepAlive yes'
+  - name: Change SSH session timeout
+    lineinfile: dest=/etc/ssh/sshd_config
+                regexp='^#ClientAliveInterval'
+                insertbefore=BOF
+                line='ClientAliveInterval 60'
+  - name: Change SSH session timeout
+    lineinfile: dest=/etc/ssh/sshd_config
+                regexp='^#ClientAliveCountMax'
+                insertbefore=BOF
+                line='ClientAliveCountMax 60'
+  - name: Restart service sshd
+    ansible.builtin.service:
+      name: sshd
+      state: restarted
+  - name: Update APT
+    apt:
+      update_cache: yes
+  - name: Install packeges
+    apt:
+      name:
+        - apt-transport-https
+        - curl
+        - wget
+        - git
+        - virtualbox
+  - name: Add license for virtualbox-ext-pack
+    shell: echo virtualbox-ext-pack virtualbox-ext-pack/license select true | sudo debconf-set-selections
+  - name: Install virtualbox-ext-pack
+    apt:
+      name:
+        - virtualbox-ext-pack
+  - name: Swap-Off
+    shell: swapoff -a
+  - name: Download minikube exec file
+    get_url:
+      url: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+      dest: /usr/local/bin/minikube
+      mode: '0755'
+
+  - name: install kubectl
+    get_url:
+      url: "https://dl.k8s.io/release/v1.24.1/bin/linux/amd64/kubectl"
+      dest: /usr/local/bin/kubectl
+      mode: "0755"
+
+  - name: minikube start
+    shell: minikube start --force
