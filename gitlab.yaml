@@ -1,0 +1,46 @@
+---
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: my-gitlab
+  labels:
+    app : my-gitlab-k8s
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      project: local-gitlab
+  template:
+    metadata:
+      labels:
+        project: local-gitlab   # Service will look for those PODS Labels!!!
+    spec:
+      containers:
+        - name : gitlab
+          image: ustclug/gitlab
+          ports:
+            - containerPort: 80
+#          volumeMounts:
+#          - mountPath: /var/www/html
+#            name: data
+#      volumes:
+#      - name: data
+#        persistentVolumeClaim:
+#           claimName: files-html
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitlab
+  labels:
+     env  : test
+     owner: Alexey_Simonov
+spec:
+  selector:
+    project: local-gitlab      # Selecting PODs with those Labels
+  ports:
+    - protocol  : TCP
+      port      : 80
+      targetPort: 80
