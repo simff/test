@@ -11,15 +11,15 @@ echo Power ON VM
 sleep 10
 ssh esxi "vim-cmd vmsvc/message $idnewvm" > message.vm
 idmes=`sed -n '1s/Virtual machine message//; s/://p' message.vm`
-ssh esxi "vim-cmd vmsvc/message $idmes 0 2"
-echo Answer the question and wait 5 minute
-sec=300
+ssh esxi "vim-cmd vmsvc/message $idnewvm $idmes 2"
+echo Answer the question and wait 1 minute
+sec=60
                          while [ $sec -ge 0 ]; do
                                  echo -ne "$sec\033[0K\r"
                                  let "sec=sec-1"
                                  sleep 1
                          done
-
+rm message.vm
 echo Change IP address
 ssh 192.168.1.250 "ip addr add 192.168.1.155/255.255.255.0 dev ens33"
 sleep 5
