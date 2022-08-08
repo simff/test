@@ -1,9 +1,15 @@
+
 ---
 -
   hosts: localhost
   tasks:
-    - name: Clone a virtual machine 
+    - name: PoweredON a virtual machine 
       community.vmware.vmware_guest:
         hostname: esxi.my
         username: root
-        password: 12qw#$ER
+        password: "!Passw0rd"
+        validate_certs: False
+        name: Ubuntu
+        state: poweredoff
+      delegate_to: localhost
+
