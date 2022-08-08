@@ -1,0 +1,9 @@
+---
+-
+  become: true
+  hosts: esxi
+  become_method: sudo
+  become_user: root
+  tasks:
+    - name: Clone VM
+      shell: echo "123"

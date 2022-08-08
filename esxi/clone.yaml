@@ -1,0 +1,31 @@
+---
+-
+  become: true
+  hosts: esxi
+  become_method: sudo
+  become_user: root
+  tasks:
+    - name: Clone VM
+      vmware_guest:
+        hostname: "{{ vcenter_server }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_pass }}"
+        validate_certs: False
+#         datacenter: datacenter1
+#    cluster: cluster1
+        name: Ubuntu
+#    template: TemplateName
+        folder: /vmfs/volumes/ds-1/Ubuntu
+#        annotation: "Моя машина, клонированная из TemplateName"
+        datastore: ds-1
+        networks:
+          - name: VM Network
+            ip: '192.168.1.91'
+            netmask: '255.255.255.0'
+            gateway: '192.168.1.1'
+            dns_servers: '192.168.1.1'
+            type: static
+        customization:
+            hostname: "Ubuntu2"
+            dns_servers: '192.168.1.1'
+        wait_for_ip_address: yes
