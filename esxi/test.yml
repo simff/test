@@ -1,9 +1,19 @@
 ---
--
-  become: true
-  hosts: esxi
-  become_method: sudo
-  become_user: root
+- hosts: localhost
+
   tasks:
-    - name: Clone VM
-      shell: echo "123"
+    - name: Include Secret Environment Items
+      include_vars:
+        file: secrets.yml
+        name: secret
+
+    - name: vCenter Login
+      uri:
+        url: "https://{{secret.vcenter}}/rest/com/vmware/cis/session"
+        force_basic_auth: yes
+        method: POST
+        user: "{{secret.username}}"
+        password: "{{secret.password}}"
+        status_code: 200
+        validate_certs: no
+      register: login
