@@ -1,6 +1,9 @@
 ---
 -
-  hosts: esxi
+  hosts: localhost
   tasks:
-    - name: Clone VM
-      shell: echo "123"
+    - name: Clone a virtual machine 
+      community.vmware.vmware_guest:
+        hostname: esxi.my
+        username: root
+        password: 12qw#$ER
