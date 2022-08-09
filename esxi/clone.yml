@@ -34,6 +34,11 @@
           scsi: paravirtual
         networks:
         - name: VM Network
-          device_type: vmxnet3
+          ip: 192.168.1.93
+          netmask: 255.255.255.0
+          gateway: 192.168.1.1
+          dns_servers:
+          - 192.168.1.1
+          device_type: e1000
       delegate_to: localhost
       register: Ubuntu2

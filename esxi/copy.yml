@@ -1,0 +1,3 @@
+#!/bin/bash
+
+ssh esxi.my "cp /vmfs/volumes/ds-1/Ubuntu/Ubuntu-flat.vmdk /vmfs/volumes/ds-1/Ubuntu2/Ubuntu2-flat.vmdk"

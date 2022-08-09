@@ -3,7 +3,7 @@
 -
   hosts: localhost
   tasks:
-    - name: PoweredON a virtual machine
+    - name: PoweredOFF a virtual machine
       community.vmware.vmware_guest:
         hostname: esxi.my
         username: root
@@ -11,5 +11,5 @@
         validate_certs: False
         esxi_hostname: "localhost.localdomain"
         name: Ubuntu
-        state: poweredon
+        state: poweredoff
       delegate_to: localhost
