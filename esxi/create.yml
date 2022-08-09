@@ -1,0 +1,29 @@
+
+---
+-
+  hosts: localhost
+  tasks:
+    - name: PoweredON a virtual machine
+      community.vmware.vmware_guest:
+        hostname: esxi.my
+        username: root
+        password: "!Passw0rd"
+        validate_certs: False
+        esxi_hostname: "localhost.localdomain"
+        folder: /
+        name: Ubuntu2
+        state: poweredoff
+        guest_id: ubuntu64Guest
+        disk:
+          - size_gb: 15
+            type: thin
+            datastore: ds-1
+        hardware:
+          memory_mb: 2048
+          num_cpus: 2
+          scsi: paravirtual
+        networks:
+        - name: VM Network
+          device_type: vmxnet3
+      delegate_to: localhost
+      register: Ubuntu2
