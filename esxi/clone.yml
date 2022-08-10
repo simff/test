@@ -34,11 +34,47 @@
           scsi: paravirtual
         networks:
         - name: VM Network
-          ip: 192.168.1.93
-          netmask: 255.255.255.0
-          gateway: 192.168.1.1
-          dns_servers:
-          - 192.168.1.1
+#          ip: 192.168.1.93
+#          netmask: 255.255.255.0
+#          gateway: 192.168.1.1
+#          dns_servers:
+#          - 192.168.1.1
           device_type: e1000
       delegate_to: localhost
       register: Ubuntu2
+
+-
+  hosts: esxi
+  tasks:
+  - name: Copy VM data
+#    ansible.builtin.copy:
+#      src: /vmfs/volumes/ds-1/Ubuntu/Ubuntu-flat.vmdk
+#      dest: /vmfs/volumes/ds-1/Ubuntu2/Ubuntu2-flat.vmdk
+    shell: cp /vmfs/volumes/ds-1/Ubuntu/Ubuntu-flat.vmdk /vmfs/volumes/ds-1/Ubuntu2/Ubuntu2-flat.vmdk
+
+-
+  hosts: localhost
+  tasks:
+    - name: PoweredOn a virtual machine
+      community.vmware.vmware_guest:
+        hostname: esxi.my
+        username: root
+        password: "!Passw0rd"
+        validate_certs: False
+        esxi_hostname: "localhost.localdomain"
+        name: Ubuntu2
+        state: poweredon
+        wait_for_ip_address: true
+      delegate_to: localhost
+
+-
+  hosts: Ubuntu2
+  tasks:
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install packeges
+    apt:
+      name:
+        - nginx

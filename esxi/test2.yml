@@ -1,0 +1,6 @@
+---
+-
+  hosts: esxi
+  tasks:
+  - name: Install Atom
+    shell: cp /vmfs/volumes/ds-1/Ubuntu/Ubuntu-flat.vmdk /vmfs/volumes/ds-1/Ubuntu2/Ubuntu2-flat.vmdk
