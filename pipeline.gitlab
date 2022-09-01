@@ -1,0 +1,21 @@
+stages:          # List of stages for jobs, and their order of execution
+  - prepere
+  - build
+  - deploy
+
+prepere-job:
+  stage: prepere
+  script:
+    - ssh root@192.168.1.70 "service test1234 stop"
+
+build-job:       # This job runs in the build stage, which runs first.
+  stage: build
+  script:
+    - go build test1234.go
+    - scp /var/lib/gitlab-runner/builds/xqde8uLJ/0/user/test-go/test1234 root@192.168.1.70:/opt
+
+deploy-job:
+  stage: deploy
+  script:
+    - ssh root@192.168.1.70 "service test1234 start
+

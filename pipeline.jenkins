@@ -1,0 +1,29 @@
+pipeline {
+    agent any
+    tools {
+        go 'go'
+    }
+    environment {
+        GO111MODULE = 'on'
+    }
+    stages {
+        stage('Prepere') {
+            steps {
+                sh 'ssh root@192.168.1.70 "service test1234 stop" '
+                sh 'ssh root@192.168.1.70 "rm /opt/test1234" '
+            }
+        }
+        stage('Build') {
+            steps {
+                sh 'go build /opt/test1234.go'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                sh 'scp /var/lib/jenkins/workspace/test-go/test1234 root@192.168.1.70:/opt'
+                sh 'ssh root@192.168.1.70 "service test1234 start" '
+            }
+        }
+    }
+}
+
