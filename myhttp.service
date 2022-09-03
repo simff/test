@@ -1,0 +1,16 @@
+[Unit]
+  Description=Smart test
+ 
+[Service]
+  WorkingDirectory=/opt
+  ExecStart=/usr/bin/java JavaHTTPServer
+  Type=idle
+  KillMode=process
+ 
+  SyslogIdentifier=smart-test
+  SyslogFacility=daemon
+ 
+  Restart=on-failure
+ 
+[Install]
+  WantedBy=multiuser.target
