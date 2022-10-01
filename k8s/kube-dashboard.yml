@@ -1,0 +1,195 @@
+---
+-
+  become: true
+  hosts: primary-master
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install packeges for dashboard
+    apt:
+      name:
+        - curl
+        - wget
+        - mlocate
+
+  - name: Create a /opt/download
+    ansible.builtin.file:
+      path: /opt/download
+      state: directory
+      mode: '0777'
+
+  - name: Download yaml file
+    get_url:
+      url: https://raw.githubusercontent.com/kubernetes/dashboard/v2.5.0/aio/deploy/recommended.yaml
+      dest: /opt/download
+      mode: '0777'
+
+  - name: Create dashboard
+    shell: kubectl apply -f /opt/download/recommended.yaml
+
+  - name: Pause for 1 minutes to build app cache
+    pause:
+      minutes: 1
+
+  - name: Create service account yaml
+    copy:
+        dest: "/opt/download/service-account.yaml"
+        content: |
+          ---
+          apiVersion: v1
+          kind: ServiceAccount
+          metadata:
+            name: admin-user
+            namespace: kubernetes-dashboard
+          ---
+          apiVersion: rbac.authorization.k8s.io/v1
+          kind: ClusterRoleBinding
+          metadata:
+            name: admin-user
+          roleRef:
+            apiGroup: rbac.authorization.k8s.io
+            kind: ClusterRole
+            name: cluster-admin
+          subjects:
+          - kind: ServiceAccount
+            name: admin-user
+            namespace: kubernetes-dashboard
+
+  - name: Create service account
+    shell: kubectl apply -f /opt/download/service-account.yaml
+
+  - name: Create dashboard account token /opt/download
+    shell: kubectl -n kubernetes-dashboard create token admin-user > /opt/download/dashboard-token
+
+  - name: Create readme-link
+    copy:
+        dest: "/opt/download/readme-link"
+        content: |
+          https://192.168.1.111/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/workloads?namespace=default
+          kubectl -n kubernetes-dashboard create token admin-user
+
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install packeges for apache2
+    apt:
+      name:
+        - apache2
+        - openssl
+
+  - name: Enable apache2 module rewrite
+    apache2_module:
+      state: present
+      name: rewrite
+
+  - name: Enable apache2 module headers
+    apache2_module:
+      state: present
+      name: headers
+
+  - name: Enable apache2 module proxy
+    apache2_module:
+      state: present
+      name: proxy
+
+  - name: Enable apache2 module proxy_http
+    apache2_module:
+      state: present
+      name: proxy_http
+
+  - name: Enable apache2 module ssl
+    apache2_module:
+      state: present
+      name: ssl
+
+  - name: Update a /etc/apache2/apache2.conf
+    blockinfile:
+        dest: /etc/apache2/apache2.conf
+        block: |
+          <Directory /var/www/html>
+          AllowOverride All
+          </Directory>
+
+  - name: Create a /etc/apache2/certificate
+    ansible.builtin.file:
+      path: /etc/apache2/certificate
+      state: directory
+      mode: '0777'
+
+  - name: Make ssl certificate
+    shell: openssl req -new -newkey rsa:4096 -x509 -sha256 -days 365 -nodes -out /etc/apache2/certificate/apache-certificate.crt -keyout /etc/apache2/certificate/apache.key -subj "/C=RU/ST=Moscow/L=Moscow/O=Security/OU=IT Department/CN=www.example.ru"
+
+  - name: Create /etc/apache2/sites-enabled/000-default.conf
+    copy:
+        dest: "/etc/apache2/sites-enabled/000-default.conf"
+        content: |
+          <VirtualHost *:80>
+            RewriteEngine On
+            RewriteCond %{HTTPS} !=on
+            RewriteRule ^/?(.*) https://%{SERVER_NAME}/$1 [R=301,L]
+          </virtualhost>
+          <VirtualHost *:443>
+            ServerAdmin webmaster@localhost
+            DocumentRoot /var/www/html
+            ErrorLog ${APACHE_LOG_DIR}/error.log
+            CustomLog ${APACHE_LOG_DIR}/access.log combined
+            SSLEngine on
+            SSLCertificateFile /etc/apache2/certificate/apache-certificate.crt
+            SSLCertificateKeyFile /etc/apache2/certificate/apache.key
+          <Location />
+            ProxyPass http://127.0.0.1:8001/
+            ProxyPassReverse http://127.0.0.1:8001/
+          </Location>
+          </VirtualHost>
+
+  - name: Disabled port 80 for ingress
+    lineinfile: dest=/etc/apache2/ports.conf
+                regexp='^Listen 80'
+                insertbefore=BOF
+                line='#Listen 80'
+
+  - name: Restart apache2
+    service:
+        name: "apache2"
+        state: "restarted"
+        enabled: "yes"
+
+  - name: Create exec file proxy-dashboard
+    copy:
+        dest: "/usr/local/bin/proxy-dashboard"
+        content: |
+          #!/bin/bash
+          sudo kubectl proxy
+
+  - name: Change file permissions proxy-dashboard
+    ansible.builtin.file:
+      path: /usr/local/bin/proxy-dashboard
+      mode: '0777'
+
+  - name: Create service proxy
+    copy:
+        dest: "/etc/systemd/system/proxy-dashboard.service"
+        content: |
+          [Unit]
+          Description=Kubernetes Proxy
+          After=apache2.service
+          [Service]
+          ExecStart=/usr/local/bin/proxy-dashboard
+          Type=idle
+          KillMode=process
+          SyslogIdentifier=proxy-dashboard.service
+          SyslogFacility=daemon
+          Restart=on-failure
+          [Install]
+          WantedBy=multi-user.target
+
+  - name: Restart proxy-dashboard service
+    service:
+        name: "proxy-dashboard"
+        state: "restarted"
+        enabled: "yes"
