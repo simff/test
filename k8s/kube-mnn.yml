@@ -130,7 +130,8 @@
       create: yes
 
   - name: Apply flannel
-    shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+#    shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+    shell: kubectl apply -f https://github.com/simff/test/blob/master/k8s/kube-flannel.yml
 
   - name: Pause for 1 minutes to build app cache
     pause:
