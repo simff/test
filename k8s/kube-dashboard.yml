@@ -1,7 +1,7 @@
 ---
 -
   become: true
-  hosts: primary-master
+  hosts: kube-master01
   become_method: sudo
   become_user: root
   tasks:
@@ -69,7 +69,7 @@
     copy:
         dest: "/opt/download/readme-link"
         content: |
-          https://192.168.1.111/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/workloads?namespace=default
+          https://192.168.1.110/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/workloads?namespace=default
           kubectl -n kubernetes-dashboard create token admin-user
 
   - name: Update APT

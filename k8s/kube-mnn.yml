@@ -14,11 +14,11 @@
         192.168.1.130 kube-node01
         192.168.1.120 kube-master02
 
-  - name: Selinux Disabled
-    lineinfile: dest=/etc/selinux/config
-                regexp='^SELINUX='
-                insertbefore=BOF
-                line='SELINUX=disabled'
+#  - name: Selinux Disabled
+#    lineinfile: dest=/etc/selinux/config
+#                regexp='^SELINUX='
+#                insertbefore=BOF
+#                line='SELINUX=disabled'
 
   - name: Update APT
     apt:
@@ -113,7 +113,7 @@
       minutes: 1
 -
   become: true
-  hosts: primary-master
+  hosts: kube-master01
   become_method: sudo
   become_user: root
   tasks:
@@ -130,16 +130,17 @@
       create: yes
 
   - name: Apply flannel
-#    shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
-    shell: kubectl apply -f https://github.com/simff/test/blob/master/k8s/kube-flannel.yml
+    shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+#    shell: kubectl apply -f https://github.com/simff/test/blob/master/k8s/kube-flannel.yml
 
   - name: Pause for 1 minutes to build app cache
     pause:
       minutes: 1
 
+# edit host name
 -
   become: true
-  hosts: primary-master
+  hosts: kube-master01
   become_method: sudo
   become_user: root
   tasks:
