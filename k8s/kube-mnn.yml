@@ -5,14 +5,16 @@
   become_method: sudo
   become_user: root
   tasks:
+# ----- /etc/hosts ---------------------
   - name: Add host /etc/hosts
     copy:
       dest: "/etc/hosts"
       content: |
         127.0.0.1 localhost
         192.168.1.110 kube-master01
-        192.168.1.130 kube-node01
-        192.168.1.120 kube-master02
+        192.168.1.120 kube-node01
+        192.168.1.130 kube-node02
+# --------------------------------------
 
 #  - name: Selinux Disabled
 #    lineinfile: dest=/etc/selinux/config
@@ -111,14 +113,19 @@
   - name: Pause for 1 minutes to build app cache
     pause:
       minutes: 1
+
 -
   become: true
-  hosts: kube-master01
+  hosts: primary-master
   become_method: sudo
   become_user: root
   tasks:
   - name: Init pod-network
     shell: kubeadm init --pod-network-cidr=10.244.0.0/16
+
+  - name: Pause for 1 minutes to build app cache
+    pause:
+      minutes: 1
 
   - name: Export KUBECONFIG
     shell: export KUBECONFIG=/etc/kubernetes/admin.conf
@@ -129,18 +136,31 @@
       line: export KUBECONFIG=/etc/kubernetes/admin.conf
       create: yes
 
+# -------------- Ubuntu 20.04 LTS ----------------------
+
+#  - name: Apply flannel
+#    shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+###    shell: kubectl apply -f https://github.com/simff/test/blob/master/k8s/kube-flannel.yml
+
+# ------------------------------------------------------
+
+# -------------- Ubuntu 22.04 LTS ----------------------
+
   - name: Apply flannel
     shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
-#    shell: kubectl apply -f https://github.com/simff/test/blob/master/k8s/kube-flannel.yml
+
+  - name: Apply flannel2
+    shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-rbac.yml
+
+# ------------------------------------------------------
 
   - name: Pause for 1 minutes to build app cache
     pause:
       minutes: 1
 
-# edit host name
 -
   become: true
-  hosts: kube-master01
+  hosts: primary-master
   become_method: sudo
   become_user: root
   tasks:
@@ -159,4 +179,4 @@
   become_user: root
   tasks:
   - name: join cluster
-    shell: "{{ hostvars['kube-master01'].join_command }}"
+    shell: "{{ hostvars['kube-master01'].join_command }}"  # set primary master
