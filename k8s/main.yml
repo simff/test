@@ -1,6 +1,6 @@
 ---
-- name: Setup Kubernetes
-  import_playbook: kube-mnn.yml
+#- name: Setup Kubernetes
+#  import_playbook: kube-mnn.yml
 
 #- name: Setup Kubernetes Dashboard
 #  import_playbook: kube-dashboard.yml

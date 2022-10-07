@@ -12,9 +12,17 @@
       content: |
         127.0.0.1 localhost
         192.168.1.110 kube-master01
-        192.168.1.120 kube-node01
-        192.168.1.130 kube-node02
+        192.168.1.210 kube-node01
 # --------------------------------------
+  - name: Disabled AutoUpdate
+    copy:
+      dest: "/etc/apt/apt.conf.d/20auto-upgrades"
+      content: |
+        APT::Periodic::Update-Package-Lists "0";
+        APT::Periodic::Unattended-Upgrade "0";
+
+  - name: Unconditionally reboot the machine with all defaults
+    ansible.builtin.reboot:
 
 #  - name: Selinux Disabled
 #    lineinfile: dest=/etc/selinux/config
@@ -138,19 +146,19 @@
 
 # -------------- Ubuntu 20.04 LTS ----------------------
 
-#  - name: Apply flannel
-#    shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+  - name: Apply flannel
+    shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
 ###    shell: kubectl apply -f https://github.com/simff/test/blob/master/k8s/kube-flannel.yml
 
 # ------------------------------------------------------
 
 # -------------- Ubuntu 22.04 LTS ----------------------
 
-  - name: Apply flannel
-    shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+#  - name: Apply flannel
+#    shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
 
-  - name: Apply flannel2
-    shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-rbac.yml
+#  - name: Apply flannel2
+#    shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/k8s-manifests/kube-flannel-rbac.yml
 
 # ------------------------------------------------------
 

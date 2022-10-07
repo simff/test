@@ -1,0 +1,41 @@
+---
+-
+  become: true
+  hosts: kube-masters
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install etcd
+    apt:
+      name:
+        - etcd
+
+  - name: Edit /etc/default/etcd
+    copy:
+      dest: "/etc/default/etcd"
+      content: |
+        ETCD_NAME="kube-etcd"
+        ETCD_LISTEN_PEER_URLS="http://{{ansible_host}}:2380"
+        ETCD_LISTEN_CLIENT_URLS="http://{{ansible_host}}:2379"
+        ETCD_INITIAL_ADVERTISE_PEER_URLS="http://{{ansible_host}}:2380"
+        ETCD_INITIAL_CLUSTER="kube-etcd=http://{{ansible_host}}:2380"
+        ETCD_INITIAL_CLUSTER_STATE="new"
+        ETCD_INITIAL_CLUSTER_TOKEN="etcd-cluster"
+        ETCD_ADVERTISE_CLIENT_URLS="http://{{ansible_host}}:2379"
+        ETCD_ADVERTISE_CLIENT_URLS="http://{{ansible_host}}:2379"
+
+  - name: Edit service config etcd
+    lineinfile: dest=/usr/lib/systemd/system/etcd.service
+                regexp='^Type='
+                insertbefore=BOF
+                line='Type=idle'
+
+  - name: Restart etcd
+    service:
+      name: "etcd"
+      state: "restarted"
+      enabled: "yes"
