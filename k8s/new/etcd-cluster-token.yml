@@ -1,0 +1,7 @@
+---
+-
+  become: true
+  hosts: kube-masters
+  become_method: sudo
+  become_user: root
+  tasks:

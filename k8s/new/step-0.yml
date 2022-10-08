@@ -1,0 +1,27 @@
+---
+-
+  become: true
+  hosts: all
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install packeges
+    apt:
+      name:
+        - apt-transport-https
+        - curl
+        - wget
+        - git
+
+  - name: Swap-Off
+    shell: swapoff -a
+
+  - name: Changes /etc/fstab
+    ansible.builtin.lineinfile:
+      path: /etc/fstab
+      state: absent
+      regexp: 'swap'

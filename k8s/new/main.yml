@@ -1,0 +1,12 @@
+---
+#- name: Before Install
+#  import_playbook: before.yml
+
+#- name: Step-0
+#  import_playbook: step-0.yml
+
+#- name: Install-Base
+#  import_playbook: install-base.yml
+
+#- name: Install-Etcd
+#  import_playbook: install-etcd.yml
