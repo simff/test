@@ -11,11 +11,12 @@
       dest: "/etc/hosts"
       content: |
         127.0.0.1 localhost
-        192.168.1.110 kube-master01
-        192.168.1.120 kube-master02
-        192.168.1.130 kube-master03
-        192.168.1.210 kube-node01
-        192.168.1.220 kube-node02
+        192.168.1.110 master01
+        192.168.1.120 master02
+        192.168.1.130 master03
+        192.168.1.210 worknode01
+        192.168.1.220 worknode02
+        192.168.1.230 worknode03
 
   - name: Disabled AutoUpdate
     copy:

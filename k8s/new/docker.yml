@@ -1,0 +1,8 @@
+- name: Setting Up docker to masters and worknodes
+  hosts: all
+  become: yes
+  become_method: sudo
+
+  tasks:
+    - name: Install docker
+      shell: curl -sSL https://get.docker.com/ | sh
