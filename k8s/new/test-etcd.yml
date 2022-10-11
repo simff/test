@@ -5,17 +5,6 @@
   become_method: sudo
   become_user: root
   tasks:
-  - name: Install etcd
-    apt:
-      name:
-        - etcd
-
-  - name: Stop etcd
-    service:
-      name: "etcd"
-      state: "stopped"
-      enabled: "yes"
-
   - name: Edit etcd config
     copy:
       dest: "/etc/default/etcd"
@@ -29,24 +18,3 @@
         ETCD_INITIAL_CLUSTER_TOKEN="etcd-token-1"
         ETCD_ADVERTISE_CLIENT_URLS="http://{{ansible_host}}:2379"
         ETCD_INITIAL_CLUSTER="{{ hostvars['master01'].inventory_hostname }}=http://{{ hostvars['master01'].ansible_host }}:2380,{{ hostvars['master02'].inventory_hostname }}=http://{{ hostvars['master02'].ansible_host }}:2380,{{ hostvars['master03'].inventory_hostname }}=http://{{ hostvars['master03'].ansible_host }}:2380"
-
-  - name: systemctl enable etcd
-    shell: systemctl enable etcd
-
-  - name: Start etcd
-    service:
-      name: "etcd"
-      state: "started"
-      enabled: "yes"
-
-  - name: Change etcd config
-    lineinfile: dest=/etc/default/etcd
-                regexp='^ETCD_INITIAL_CLUSTER_STATE'
-                insertbefore=BOF
-                line='ETCD_INITIAL_CLUSTER_STATE="existing"'
-
-  - name: Restart etcd
-    service:
-      name: "etcd"
-      state: "restarted"
-      enabled: "yes"
