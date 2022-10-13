@@ -30,9 +30,6 @@
         ETCD_ADVERTISE_CLIENT_URLS="http://{{ansible_host}}:2379"
         ETCD_INITIAL_CLUSTER="{{ hostvars['master01'].inventory_hostname }}=http://{{ hostvars['master01'].ansible_host }}:2380,{{ hostvars['master02'].inventory_hostname }}=http://{{ hostvars['master02'].ansible_host }}:2380,{{ hostvars['master03'].inventory_hostname }}=http://{{ hostvars['master03'].ansible_host }}:2380"
 
-  - name: systemctl enable etcd
-    shell: systemctl enable etcd
-
   - name: Start etcd
     service:
       name: "etcd"
@@ -44,6 +41,18 @@
                 regexp='^ETCD_INITIAL_CLUSTER_STATE'
                 insertbefore=BOF
                 line='ETCD_INITIAL_CLUSTER_STATE="existing"'
+
+  - name: Change etcd.service
+    lineinfile: dest=/usr/lib/systemd/system/etcd.service
+                regexp='^Type='
+                insertbefore=BOF
+                line='Type=idle'
+
+  - name: daemon-reload
+    shell: systemctl daemon-reload
+
+  - name: systemctl enable etcd
+    shell: systemctl enable etcd
 
   - name: Restart etcd
     service:
