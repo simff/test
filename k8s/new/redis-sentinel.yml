@@ -1,0 +1,35 @@
+---
+-
+  become: true
+  hosts: masters
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Install Redis-sentinel
+    apt:
+      name:
+        - redis-sentinel
+
+  - name: Stop redis-sentinel
+    service:
+      name: "redis-sentinel"
+      state: "stopped"
+      enabled: "yes"
+
+  - name: Change sentinel config
+    copy:
+      dest: "/etc/redis/sentinel.conf"
+      content: |
+        sentinel monitor redis-master 192.168.1.110 6379 1
+        sentinel down-after-milliseconds redis-master 1000
+        sentinel failover-timeout redis-master 3000
+        sentinel parallel-syncs redis-master 1
+        bind {{ansible_host}} 127.0.0.1
+        sentinel auth-pass redis-master 123qwe
+        protected-mode no
+
+  - name: Start redis-sentinel
+    service:
+      name: "redis-sentinel"
+      state: "started"
+      enabled: "yes"
