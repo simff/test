@@ -51,6 +51,7 @@
   become_method: sudo
   become_user: root
   tasks:
+
 # Sentinel mode
 
 #  - name: Change redis-server.service

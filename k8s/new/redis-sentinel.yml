@@ -20,7 +20,7 @@
     copy:
       dest: "/etc/redis/sentinel.conf"
       content: |
-        sentinel monitor redis-master 192.168.1.110 6379 1
+        sentinel monitor redis-master {{ hostvars['master01'].ansible_host }} 6379 1
         sentinel down-after-milliseconds redis-master 1000
         sentinel failover-timeout redis-master 3000
         sentinel parallel-syncs redis-master 1
