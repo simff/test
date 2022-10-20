@@ -1,0 +1,71 @@
+---
+-
+  become: true
+  hosts: masters
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Install packeges nginx php
+    apt:
+      name:
+      - nginx
+      - php7.4
+      - php7.4-cli
+      - php7.4-fpm
+      - php7.4-json
+      - php7.4-pdo
+      - php7.4-mysql
+      - php7.4-zip
+      - php7.4-gd
+      - php7.4-mbstring
+      - php7.4-curl
+      - php7.4-xml
+      - php-pear
+      - php7.4-bcmath
+
+  - name: Stop nginx
+    service:
+      name: "nginx"
+      state: "stopped"
+      enabled: "yes"
+
+  - name: Remove index.html
+    ansible.builtin.file:
+      path: /var/www/html/index.html
+      state: absent
+
+  - name: Create index.php
+    copy:
+      dest: "/var/www/html/index.php"
+      content: |
+        <?php
+        $ip_addr=$_SERVER['SERVER_ADDR'];
+        echo "<h1><font color=Violet>My Web Server IP <font color=MediumBlue> $ip_addr</h1><br>";
+        ?>
+
+  - name: Create /etc/nginx/sites-available/default
+    copy:
+      dest: "/etc/nginx/sites-available/default"
+      content: |
+        server {
+        listen 80 default_server;
+        listen [::]:80 default_server;
+        root /var/www/html;
+        index index.php index.html index.htm index.nginx-debian.html;
+        server_name _;
+        location / {
+        try_files $uri $uri/ =404;
+        }
+        location ~ \.php$ {
+        fastcgi_pass unix:/run/php/php7.4-fpm.sock;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include /etc/nginx/fastcgi_params;
+        }
+        }
+
+  - name: Start nginx
+    service:
+      name: "nginx"
+      state: "started"
+      enabled: "yes"
