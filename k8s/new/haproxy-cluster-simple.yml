@@ -1,0 +1,49 @@
+---
+-
+  become: true
+  hosts: all
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Install haproxy
+    apt:
+      name:
+      - haproxy
+
+  - name: Change /etc/sysctl.conf
+    ansible.builtin.blockinfile:
+      path: /etc/sysctl.conf
+      block: |
+        net.ipv4.ip_nonlocal_bind=1
+
+  - name: Edit /etc/NetworkManager/system-connections/Проводное соединение 1.nmconnection
+    ansible.builtin.lineinfile:
+      path: '/etc/NetworkManager/system-connections/Проводное соединение 1.nmconnection'
+      insertafter: '^address1'
+      line: 'address2=192.168.1.100/24'
+
+
+  - name: Change /etc/haproxy/haproxy.cfg
+    ansible.builtin.blockinfile:
+      path: /etc/haproxy/haproxy.cfg
+      block: |
+        frontend myfrontend
+        bind *:8080
+        default_backend myservers
+        backend myservers
+        balance roundrobin
+        mode http
+        stats enable
+        stats auth admin:password
+        server server1 {{ hostvars['master01'].ansible_host }}:80 check
+        server server2 {{ hostvars['master02'].ansible_host }}:80 check
+        server server3 {{ hostvars['master03'].ansible_host }}:80 check
+
+  - name: Restart haproxy
+    service:
+      name: "haproxy"
+      state: "restarted"
+      enabled: "yes"
+
+#  - name: Unconditionally reboot the machine with all defaults
+#    ansible.builtin.reboot:
