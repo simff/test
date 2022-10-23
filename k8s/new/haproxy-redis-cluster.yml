@@ -1,0 +1,56 @@
+---
+-
+  become: true
+  hosts: masters
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Install haproxy
+    apt:
+      name:
+      - haproxy
+
+  - name: Change /etc/sysctl.conf
+    ansible.builtin.blockinfile:
+      path: /etc/sysctl.conf
+      block: |
+        net.ipv4.ip_nonlocal_bind=1
+
+  - name: Edit /etc/NetworkManager/system-connections/Проводное соединение 1.nmconnection
+    ansible.builtin.lineinfile:
+      path: '/etc/NetworkManager/system-connections/Проводное соединение 1.nmconnection'
+      insertafter: '^address1'
+      line: 'address2=192.168.1.100/24'
+
+  - name: Change /etc/haproxy/haproxy.cfg
+    copy:
+      dest: /etc/haproxy/haproxy.cfg
+      content: |
+        frontend ft_redis
+        bind *:6380 name redis
+        mode tcp
+        default_backend bk_redis
+        backend bk_redis
+        mode tcp
+        option tcp-check
+        tcp-check connect
+        tcp-check send AUTH\ 123qwe\r\n
+        tcp-check expect string +OK
+        tcp-check send PING\r\n
+        tcp-check expect string +PONG
+        tcp-check send info\ replication\r\n
+        tcp-check expect string role:master
+        tcp-check send QUIT\r\n
+        tcp-check expect string +OK
+        server Redis1 {{ hostvars['master01'].ansible_host }}:6379 check inter 2s
+        server Redis2 {{ hostvars['master02'].ansible_host }}:6379 check inter 2s
+        server Redis3 {{ hostvars['master03'].ansible_host }}:6379 check inter 2s
+
+  - name: Restart haproxy
+    service:
+      name: "haproxy"
+      state: "restarted"
+      enabled: "yes"
+
+#  - name: Unconditionally reboot the machine with all defaults
+#    ansible.builtin.reboot:
