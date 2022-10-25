@@ -42,7 +42,7 @@
   become_method: sudo
   become_user: root
   tasks:
-  - name: Change redis config for slave
+  - name: Change redis config for replica
     lineinfile: dest=/etc/redis/redis.conf
                 line='replicaof {{ hostvars['master01'].ansible_host }} 6379'
 -
