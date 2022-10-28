@@ -1,6 +1,6 @@
 ---
-- name: Before Install
-  import_playbook: before.yml
+#- name: Before Install
+#  import_playbook: before.yml
 
 - name: Step-0
   import_playbook: step-0.yml
@@ -13,3 +13,15 @@
 
 - name: Install-etcd
   import_playbook: etcd-cluster-use-token.yml
+
+- name: SSH Access master01 to master02 master03
+  import_playbook: ssh-access.yml
+
+- name: Init master01
+  import_playbook: k8s-master01.yml
+
+- name: Init CNI-Calico
+  import_playbook: CNI-Calico.yml
+
+- name: Init master02-03
+  import_playbook: k8s-master02-03.yml

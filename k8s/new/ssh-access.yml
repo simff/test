@@ -1,0 +1,38 @@
+---
+-
+  become: true
+  hosts: master01
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Generate an OpenSSH keypair with the default values (4096 bits, rsa)
+    community.crypto.openssh_keypair: # ansible-galaxy collection install community.crypto
+      path: /root/.ssh/id_rsa
+
+  - name: Copy public key in buffer
+    shell: cat /root/.ssh/id_rsa.pub
+    register: rsa_pub
+
+-
+  become: true
+  hosts: master02,master03
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Add SSH keys asim
+    authorized_key: user=root key=" {{ hostvars['master01'].rsa_pub.stdout }} "
+
+-
+  become: true
+  hosts: master01
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Create test file
+    shell: touch test.test
+
+  - name: Test scp master02
+    shell: scp -o StrictHostKeyChecking=no test.test master02:/root
+
+  - name: Test scp master03
+    shell: scp -o StrictHostKeyChecking=no test.test master03:/root

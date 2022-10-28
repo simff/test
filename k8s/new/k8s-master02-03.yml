@@ -1,0 +1,13 @@
+---
+-
+  become: true
+  hosts: master02,master03
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Kube-Init-Master02-03
+    shell: kubeadm init --config=kube-init.yaml
+
+  - name: Waiting for 2 minutes until the nodes ready
+    pause:
+      minutes: 2

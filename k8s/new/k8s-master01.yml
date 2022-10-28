@@ -1,0 +1,60 @@
+---
+-
+  become: true
+  hosts: masters
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Change /etc/environment
+    ansible.builtin.blockinfile:
+      path: /etc/environment
+      block: |
+        KUBECONFIG=/etc/kubernetes/admin.conf
+    environment:
+      KUBECONFIG: /etc/kubernetes/admin.conf
+
+  - name: Create kube-init.yaml
+    copy:
+      dest: "kube-init.yaml"
+      content: |
+        ---
+        apiVersion: kubeadm.k8s.io/v1beta1
+        kind: InitConfiguration
+        localAPIEndpoint:
+          advertiseAddress: "{{ansible_host}}"
+        ---
+        apiVersion: kubeadm.k8s.io/v1beta1
+        kind: ClusterConfiguration
+        kubernetesVersion: stable
+        apiServer:
+          certSANs:
+          - {{ hostvars['master01'].ansible_host }}
+          - {{ hostvars['master02'].ansible_host }}
+          - {{ hostvars['master03'].ansible_host }}
+          - 127.0.0.1
+        controlPlaneEndpoint: {{ansible_host}}
+        etcd:
+          external:
+            endpoints:
+            - http://{{ hostvars['master01'].ansible_host }}:2379
+            - http://{{ hostvars['master02'].ansible_host }}:2379
+            - http://{{ hostvars['master03'].ansible_host }}:2379
+        networking:
+          podSubnet: 172.16.0.0/16
+          serviceSubnet: "172.20.0.0/16"
+          dnsDomain: "cluster.local"
+
+-
+  become: true
+  hosts: master01
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Kube-Init-Master01
+    shell: kubeadm init --config=kube-init.yaml
+
+  - name: Scp Pki Master02
+    shell: scp -r /etc/kubernetes/pki master02:/etc/kubernetes/
+
+  - name: Scp Pki Master03
+    shell: scp -r /etc/kubernetes/pki master03:/etc/kubernetes/

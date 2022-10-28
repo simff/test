@@ -25,10 +25,10 @@ export K8SHA_HOSTNAME2=master02
 export K8SHA_HOSTNAME3=master03
 
 #etcd tocken:
-export ETCD_TOKEN=9489bf67bdfe1b3ae077d6fd9e7efefd
+export ETCD_TOKEN=etcd-token-1
 
 #etcd version
-export ETCD_VERSION="v3.3.10"
+export ETCD_VERSION="v3.2.26"
 
 
 ##############################
