@@ -1,0 +1,56 @@
+---
+-
+  become: true
+  hosts: all
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install packeges
+    apt:
+      name:
+        - apt-transport-https
+        - wget
+        - gnupg
+
+  - name: Wget repo
+    shell: wget -O - https://packages.icinga.com/icinga.key | apt-key add -
+
+  - name: Make repo
+    shell: . /etc/os-release; if [ ! -z ${UBUNTU_CODENAME+x} ]; then DIST="${UBUNTU_CODENAME}"; else DIST="$(lsb_release -c| awk '{print $2}')"; fi; echo "deb https://packages.icinga.com/ubuntu icinga-${DIST} main" > /etc/apt/sources.list.d/${DIST}-icinga.list echo "deb-src https://packages.icinga.com/ubuntu icinga-${DIST} main" >> /etc/apt/sources.list.d/${DIST}-icinga.list
+
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install icinga2
+    apt:
+      name:
+        - icinga2
+
+  - name: Validating the configuration file(s)
+    shell: icinga2 daemon -C
+
+  - name: Install monitoring-plugins
+    apt:
+      name:
+        - monitoring-plugins
+
+  - name: icinga2 api setup
+    shell: icinga2 api setup
+
+  - name: Restart icinga2
+    service:
+      name: "icinga2"
+      state: "restarted"
+      enabled: "yes"
+
+  - name: Install icingaweb2
+    apt:
+      name:
+        - icingaweb2
+        - icingacli
+        
