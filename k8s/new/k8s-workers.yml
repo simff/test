@@ -1,7 +1,21 @@
 ---
 -
   become: true
-  hosts: master02 #,master03
+  hosts: master01
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: get join command
+    shell: kubeadm token create --print-join-command
+    register: join_command_raw
+
+  - name: set join command
+    set_fact:
+      join_command: "{{ join_command_raw.stdout_lines[0] }}"
+
+-
+  become: true
+  hosts: worknodes
   become_method: sudo
   become_user: root
   tasks:
@@ -13,12 +27,8 @@
     environment:
       KUBECONFIG: /etc/kubernetes/admin.conf
 
-  - name: Kube-Init-Masters
-    shell: kubeadm init --config=kube-init.yaml
-
-  - name: Waiting for 2 minutes until the nodes ready
-    pause:
-      minutes: 2
+  - name: join cluster
+    shell: "{{ hostvars['master01'].join_command }}"  # set primary master
 
   - name: Disabled systemd-udevd
     shell: systemctl disable systemd-udevd systemd-udevd-control.socket systemd-udevd-kernel.socket

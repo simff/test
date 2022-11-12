@@ -28,19 +28,17 @@
         kubernetesVersion: stable
         apiServer:
           certSANs:
+          - 127.0.0.1
           - {{ hostvars['master01'].ansible_host }}
           - {{ hostvars['master02'].ansible_host }}
-          - {{ hostvars['master03'].ansible_host }}
-          - 127.0.0.1
         controlPlaneEndpoint: {{ansible_host}}
         etcd:
           external:
             endpoints:
             - http://{{ hostvars['master01'].ansible_host }}:2379
             - http://{{ hostvars['master02'].ansible_host }}:2379
-            - http://{{ hostvars['master03'].ansible_host }}:2379
         networking:
-          podSubnet: 172.16.0.0/16
+          podSubnet: 10.244.0.0/16
           serviceSubnet: "172.20.0.0/16"
           dnsDomain: "cluster.local"
 
@@ -56,5 +54,5 @@
   - name: Scp Pki Master02
     shell: scp -r /etc/kubernetes/pki master02:/etc/kubernetes/
 
-  - name: Scp Pki Master03
-    shell: scp -r /etc/kubernetes/pki master03:/etc/kubernetes/
+#  - name: Scp Pki Master03
+#    shell: scp -r /etc/kubernetes/pki master03:/etc/kubernetes/

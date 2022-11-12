@@ -16,6 +16,7 @@
         - curl
         - wget
         - git
+        - htop
 
   - name: Swap-Off
     shell: swapoff -a

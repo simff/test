@@ -5,14 +5,14 @@
   become_method: sudo
   become_user: root
   tasks:
-  - name: Apply calico
-    shell: kubectl apply -f https://docs.projectcalico.org/v3.8/manifests/calico.yaml
+  - name: Apply flannel
+    shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
     environment:
       KUBECONFIG: /etc/kubernetes/admin.conf
 
-  - name: Waiting for 5 minutes until the pods start
+  - name: Waiting for 2 minutes until the pods start
     pause:
-      minutes: 5
+      minutes: 2
 
   - name: Stop systemd-udevd
     shell: systemctl stop systemd-udevd systemd-udevd-control.socket systemd-udevd-kernel.socket
