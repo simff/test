@@ -11,8 +11,9 @@
       dest: "/etc/hosts"
       content: |
         127.0.0.1 localhost
-        192.168.1.110 kube-master01
-        192.168.1.210 kube-node01
+        {{ hostvars['master01'].ansible_host }} {{ hostvars['master01'].inventory_hostname }}
+        {{ hostvars['worknode01'].ansible_host }} {{ hostvars['worknode01'].inventory_hostname }}
+        {{ hostvars['worknode02'].ansible_host }} {{ hostvars['worknode02'].inventory_hostname }}
 # --------------------------------------
   - name: Disabled AutoUpdate
     copy:
@@ -30,14 +31,18 @@
   - name: Chmod systemd-udevd
     shell: chmod -x /usr/lib/systemd/systemd-udevd
 
-  - name: Unconditionally reboot the machine with all defaults
-    ansible.builtin.reboot:
-
 #  - name: Selinux Disabled
 #    lineinfile: dest=/etc/selinux/config
 #                regexp='^SELINUX='
 #                insertbefore=BOF
 #                line='SELINUX=disabled'
+
+#  - name: UFW disabled
+#    community.general.ufw:
+#      state: disabled
+
+  - name: Unconditionally reboot the machine with all defaults
+    ansible.builtin.reboot:
 
   - name: Update APT
     apt:
@@ -71,10 +76,6 @@
       path: /etc/sysctl.d/kube.conf
       line: net.bridge.bridge-nf-call-iptables = 1
       create: yes
-
-#  - name: UFW disabled
-#    community.general.ufw:
-#      state: disabled
 
   - name: Install Docker
     apt:
@@ -133,11 +134,11 @@
 
 -
   become: true
-  hosts: primary-master
+  hosts: masters
   become_method: sudo
   become_user: root
   tasks:
-  - name: Init pod-network
+  - name: Init master & pod-network
     shell: kubeadm init --pod-network-cidr=10.244.0.0/16
 
   - name: Pause for 1 minutes to build app cache
@@ -175,12 +176,6 @@
     pause:
       minutes: 1
 
--
-  become: true
-  hosts: primary-master
-  become_method: sudo
-  become_user: root
-  tasks:
   - name: get join command
     shell: kubeadm token create --print-join-command
     register: join_command_raw
@@ -191,9 +186,9 @@
 
 -
   become: true
-  hosts: kube-nodes
+  hosts: worknodes
   become_method: sudo
   become_user: root
   tasks:
   - name: join cluster
-    shell: "{{ hostvars['kube-master01'].join_command }}"  # set primary master
+    shell: "{{ hostvars['master01'].join_command }}"  # set primary master
