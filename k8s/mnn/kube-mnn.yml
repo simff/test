@@ -5,32 +5,6 @@
   become_method: sudo
   become_user: root
   tasks:
-# ----- /etc/hosts ---------------------
-  - name: Add host /etc/hosts
-    copy:
-      dest: "/etc/hosts"
-      content: |
-        127.0.0.1 localhost
-        {{ hostvars['master01'].ansible_host }} {{ hostvars['master01'].inventory_hostname }}
-        {{ hostvars['worknode01'].ansible_host }} {{ hostvars['worknode01'].inventory_hostname }}
-        {{ hostvars['worknode02'].ansible_host }} {{ hostvars['worknode02'].inventory_hostname }}
-# --------------------------------------
-  - name: Disabled AutoUpdate
-    copy:
-      dest: "/etc/apt/apt.conf.d/20auto-upgrades"
-      content: |
-        APT::Periodic::Update-Package-Lists "0";
-        APT::Periodic::Unattended-Upgrade "0";
-
-  - name: Disabled systemd-udevd
-    shell: systemctl disable systemd-udevd systemd-udevd-control.socket systemd-udevd-kernel.socket
-
-  - name: Stop systemd-udevd
-    shell: systemctl stop systemd-udevd systemd-udevd-control.socket systemd-udevd-kernel.socket
-
-  - name: Chmod systemd-udevd
-    shell: chmod -x /usr/lib/systemd/systemd-udevd
-
 #  - name: Selinux Disabled
 #    lineinfile: dest=/etc/selinux/config
 #                regexp='^SELINUX='
@@ -40,9 +14,6 @@
 #  - name: UFW disabled
 #    community.general.ufw:
 #      state: disabled
-
-  - name: Unconditionally reboot the machine with all defaults
-    ansible.builtin.reboot:
 
   - name: Update APT
     apt:
@@ -55,6 +26,7 @@
         - curl
         - wget
         - git
+        - htop
 
   - name: Swap-Off
     shell: swapoff -a

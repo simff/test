@@ -1,4 +1,16 @@
 ---
+- name: Disable autoupdate
+  import_playbook: disable-autoupdate.yml
+
+- name: Add Hosts
+  import_playbook: add-hosts.yml
+
+- name: Disabled systemd-udevd
+  import_playbook: Disabled-systemd-udevd.yml
+
+- name: DNS
+  import_playbook: dns.yml
+
 - name: Setup Kubernetes
   import_playbook: kube-mnn.yml
 

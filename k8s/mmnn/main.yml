@@ -1,6 +1,9 @@
 ---
-- name: Before Install
-  import_playbook: before.yml
+- name: Disable autoupdate
+  import_playbook: disable-autoupdate.yml
+
+- name: Add Hosts
+  import_playbook: add-hosts.yml
 
 - name: Disabled systemd-udevd
   import_playbook: Disabled-systemd-udevd.yml
@@ -10,9 +13,6 @@
 
 - name: Step-0
   import_playbook: step-0.yml
-
-- name: SSH Access master01 to master02 master03
-  import_playbook: ssh-access.yml
 
 - name: Install-etcd
   import_playbook: etcd-cluster-use-token.yml
@@ -25,6 +25,9 @@
 
 #- name: Install-Kubernetes:latest
 #  import_playbook: kubernetes-latest.yml
+
+- name: SSH Access master01 to master02 master03
+  import_playbook: ssh-access.yml
 
 - name: Init master01
   import_playbook: k8s-master01.yml
