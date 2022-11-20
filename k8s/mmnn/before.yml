@@ -11,12 +11,12 @@
       dest: "/etc/hosts"
       content: |
         127.0.0.1 localhost
-        192.168.1.110 master01
-        192.168.1.120 master02
-        192.168.1.130 master03
-        192.168.1.210 worknode01
-        192.168.1.220 worknode02
-        192.168.1.230 worknode03
+        {{ hostvars['master01'].ansible_host }} {{ hostvars['master01'].inventory_hostname }}
+        {{ hostvars['master02'].ansible_host }} {{ hostvars['master02'].inventory_hostname }}
+        {{ hostvars['master03'].ansible_host }} {{ hostvars['master03'].inventory_hostname }}
+        {{ hostvars['worknode01'].ansible_host }} {{ hostvars['worknode01'].inventory_hostname }}
+        {{ hostvars['worknode02'].ansible_host }} {{ hostvars['worknode02'].inventory_hostname }}
+        {{ hostvars['worknode03'].ansible_host }} {{ hostvars['worknode03'].inventory_hostname }}
 
   - name: Disabled AutoUpdate
     copy:
@@ -25,5 +25,5 @@
         APT::Periodic::Update-Package-Lists "0";
         APT::Periodic::Unattended-Upgrade "0";
 
-  - name: Unconditionally reboot the machine with all defaults
-    ansible.builtin.reboot:
+#  - name: Unconditionally reboot the machine with all defaults
+#    ansible.builtin.reboot:

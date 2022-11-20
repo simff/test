@@ -1,7 +1,7 @@
 ---
 -
   become: true
-  hosts: master02 #,master03
+  hosts: master02,master03
   become_method: sudo
   become_user: root
   tasks:
@@ -19,12 +19,3 @@
   - name: Waiting for 2 minutes until the nodes ready
     pause:
       minutes: 2
-
-  - name: Disabled systemd-udevd
-    shell: systemctl disable systemd-udevd systemd-udevd-control.socket systemd-udevd-kernel.socket
-
-  - name: Stop systemd-udevd
-    shell: systemctl stop systemd-udevd systemd-udevd-control.socket systemd-udevd-kernel.socket
-
-  - name: Chmod systemd-udevd
-    shell: chmod -x /usr/lib/systemd/systemd-udevd

@@ -15,7 +15,7 @@
 
 -
   become: true
-  hosts: master02 #,master03
+  hosts: master02,master03
   become_method: sudo
   become_user: root
   tasks:
@@ -34,5 +34,5 @@
   - name: Test scp master02
     shell: scp -o StrictHostKeyChecking=no test.test master02:/root
 
-#  - name: Test scp master03
-#    shell: scp -o StrictHostKeyChecking=no test.test master03:/root
+  - name: Test scp master03
+    shell: scp -o StrictHostKeyChecking=no test.test master03:/root

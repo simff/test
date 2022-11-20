@@ -1,0 +1,13 @@
+- name: Setting Up docker to masters and worknodes
+  hosts: all
+  become: yes
+  become_method: sudo
+  tasks:
+  - name: Install Docker
+    shell: curl -sSL https://get.docker.com/ | sh
+    
+  - name: Restart Docker
+    service:
+      name: "docker"
+      state: "restarted"
+      enabled: "yes"

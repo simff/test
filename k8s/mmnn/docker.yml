@@ -2,7 +2,31 @@
   hosts: all
   become: yes
   become_method: sudo
-
   tasks:
-    - name: Install docker
-      shell: curl -sSL https://get.docker.com/ | sh
+  - name: Install Docker
+    apt:
+      name:
+        - docker
+        - docker.io
+
+  - name: Creating /etc/docker/daemon.json
+    copy:
+      dest: "/etc/docker/daemon.json"
+      content: |
+        {
+        "exec-opts": ["native.cgroupdriver=systemd"],
+        "log-driver": "json-file",
+        "log-opts": {
+        "max-size": "100m"
+        },
+        "storage-driver": "overlay2",
+        "storage-opts": [
+        "overlay2.override_kernel_check=true"
+        ]
+        }
+
+  - name: Restart Docker
+    service:
+      name: "docker"
+      state: "restarted"
+      enabled: "yes"

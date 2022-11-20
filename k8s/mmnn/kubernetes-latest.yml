@@ -1,0 +1,33 @@
+---
+-
+  become: true
+  hosts: all
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Add apt-key
+    shell: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+
+  - name: Creating /etc/apt/sources.list.d/kubernetes.list
+    ansible.builtin.lineinfile:
+      path: /etc/apt/sources.list.d/kubernetes.list
+      line: deb https://apt.kubernetes.io/ kubernetes-xenial main
+      create: yes
+
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install kubelet kubeadm kubectl
+    apt:
+      name:
+        - kubelet
+        - kubeadm
+        - kubectl
+
+  - name: Disabled update kubelet kubeadm kubectl
+    shell: apt-mark hold kubelet kubeadm kubectl
+
+  - name: Pause for 1 minutes to build app cache
+    pause:
+      minutes: 1

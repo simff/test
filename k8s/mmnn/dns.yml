@@ -1,0 +1,14 @@
+---
+-
+  become: true
+  hosts: all
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Add host /etc/resolv.conf
+    lineinfile:
+      dest: /etc/resolv.conf
+      line: "nameserver 8.8.8.8"
+      state: present
+      insertafter: EOF
+      create: True
