@@ -1,0 +1,12 @@
+---
+-
+  become: true
+  hosts: all
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Create /etc/resolv.conf
+    copy:
+      dest: "/etc/resolv.conf"
+      content: |
+        nameserver 192.168.1.11
