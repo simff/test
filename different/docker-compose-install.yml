@@ -1,0 +1,31 @@
+---
+-
+  become: true
+  hosts: locals
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Add host /etc/resolv.conf
+    lineinfile:
+      dest: /etc/resolv.conf
+      line: "nameserver 8.8.8.8"
+      state: present
+      insertafter: EOF
+      create: True
+
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install packeges
+    apt:
+      name:
+        - curl
+
+  - name: Install Docker
+    shell: curl -sSL https://get.docker.com/ | sh
+
+  - name: Install packeges
+    apt:
+      name:
+        - docker-compose
