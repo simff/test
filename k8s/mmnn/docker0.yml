@@ -1,11 +1,32 @@
-- name: Setting Up docker to masters and worknodes
+---
+-
+  become: true
   hosts: all
-  become: yes
   become_method: sudo
+  become_user: root
   tasks:
   - name: Install Docker
-    shell: curl -sSL https://get.docker.com/ | sh
-    
+    apt:
+      name:
+        - docker
+        - docker.io
+
+  - name: Creating /etc/docker/daemon.json
+    copy:
+      dest: "/etc/docker/daemon.json"
+      content: |
+        {
+        "exec-opts": ["native.cgroupdriver=systemd"],
+        "log-driver": "json-file",
+        "log-opts": {
+        "max-size": "100m"
+        },
+        "storage-driver": "overlay2",
+        "storage-opts": [
+        "overlay2.override_kernel_check=true"
+        ]
+        }
+
   - name: Restart Docker
     service:
       name: "docker"

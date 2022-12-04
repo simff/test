@@ -27,6 +27,7 @@
         - wget
         - git
         - htop
+        - net-tools
 
   - name: Swap-Off
     shell: swapoff -a

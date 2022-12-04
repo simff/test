@@ -40,8 +40,8 @@
             - http://{{ hostvars['master02'].ansible_host }}:2379
             - http://{{ hostvars['master03'].ansible_host }}:2379
         networking:
-          podSubnet: 192.168.0.0/16
-          dnsDomain: "cluster.local"
+          podSubnet: 10.244.0.0/16
+#          dnsDomain: "cluster.local"
 #          serviceSubnet: "172.20.0.0/16"
 -
   become: true

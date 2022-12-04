@@ -1,7 +1,7 @@
 ---
 -
   become: true
-  hosts: master01,master02,master03,worknode01,worknode02
+  hosts: master01,master02,master03 #,worknode01,worknode02
   become_method: sudo
   become_user: root
   tasks:
@@ -28,7 +28,8 @@
         ETCD_INITIAL_CLUSTER_STATE="new"
         ETCD_INITIAL_CLUSTER_TOKEN="etcd-token-1"
         ETCD_ADVERTISE_CLIENT_URLS="http://{{ansible_host}}:2379"
-        ETCD_INITIAL_CLUSTER="{{ hostvars['master01'].inventory_hostname }}=http://{{ hostvars['master01'].ansible_host }}:2380,{{ hostvars['master02'].inventory_hostname }}=http://{{ hostvars['master02'].ansible_host }}:2380,{{ hostvars['worknode01'].inventory_hostname }}=http://{{ hostvars['worknode01'].ansible_host }}:2380,{{ hostvars['master03'].inventory_hostname }}=http://{{ hostvars['master03'].ansible_host }}:2380,{{ hostvars['worknode02'].inventory_hostname }}=http://{{ hostvars['worknode02'].ansible_host }}:2380"
+        ETCD_INITIAL_CLUSTER="{{ hostvars['master01'].inventory_hostname }}=http://{{ hostvars['master01'].ansible_host }}:2380,{{ hostvars['master02'].inventory_hostname }}=http://{{ hostvars['master02'].ansible_host }}:2380,{{ hostvars['master03'].inventory_hostname }}=http://{{ hostvars['master03'].ansible_host }}:2380"
+#,{{ hostvars['worknode01'].inventory_hostname }}=http://{{ hostvars['worknode01'].ansible_host }}:2380,{{ hostvars['worknode02'].inventory_hostname }}=http://{{ hostvars['worknode02'].ansible_host }}:2380"
 
   - name: Start etcd
     service:
