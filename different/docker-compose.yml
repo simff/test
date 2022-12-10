@@ -1,0 +1,36 @@
+---
+-
+  become: true
+  hosts: all
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Install packages
+    apt:
+      name:
+        - ca-certificates
+        - curl
+        - gnupg
+        - lsb-release
+
+  - name: mkdir -p /etc/apt/keyrings
+    shell: mkdir -p /etc/apt/keyrings
+
+  - name: Add apt-key
+    shell: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+  - name: Add repository
+    shell: echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install docker
+    apt:
+      name:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+        - docker-compose
+        - docker-compose-plugin

@@ -1,0 +1,38 @@
+---
+-
+  become: true
+  hosts: all
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install packeges
+    apt:
+      name:
+        - curl
+
+  - name: Install Docker
+    shell: curl -sSL https://get.docker.com/ | sh
+
+  - name: Install packeges
+    apt:
+      name:
+        - docker-compose
+        - docker-compose-plugin
+
+  - name: Access docker-registry
+    lineinfile:
+      dest: /etc/docker/daemon.json
+      line: '{"insecure-registries":["docker-registry.local.net"]}'
+      state: present
+      insertafter: EOF
+      create: True
+
+  - name: Restart Docker
+    service:
+      name: "docker"
+      state: "restarted"
+      enabled: "yes"
