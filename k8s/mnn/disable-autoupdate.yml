@@ -12,5 +12,20 @@
         APT::Periodic::Update-Package-Lists "0";
         APT::Periodic::Unattended-Upgrade "0";
 
+  - name: Install packeges
+    apt:
+      name:
+        - policycoreutils
+
+  - name: Selinux Disabled
+    lineinfile: dest=/etc/selinux/config
+                regexp='^SELINUX='
+                insertbefore=BOF
+                line='SELINUX=disabled'
+
+  - name: UFW disabled
+    community.general.ufw:
+      state: disabled
+
   - name: Unconditionally reboot the machine with all defaults
     ansible.builtin.reboot:

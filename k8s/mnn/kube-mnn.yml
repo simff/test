@@ -5,19 +5,9 @@
   become_method: sudo
   become_user: root
   tasks:
-#  - name: Selinux Disabled
-#    lineinfile: dest=/etc/selinux/config
-#                regexp='^SELINUX='
-#                insertbefore=BOF
-#                line='SELINUX=disabled'
-
-#  - name: UFW disabled
-#    community.general.ufw:
-#      state: disabled
-
-  - name: Update APT
-    apt:
-      update_cache: yes
+#  - name: Update APT
+#    apt:
+#      update_cache: yes
 
   - name: Install packeges
     apt:
@@ -78,25 +68,28 @@
       state: "restarted"
       enabled: "yes"
 
-  - name: Add apt-key
-    shell: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+#  - name: Add apt-key
+#    shell: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
 
-  - name: Creating /etc/apt/sources.list.d/kubernetes.list
-    ansible.builtin.lineinfile:
-      path: /etc/apt/sources.list.d/kubernetes.list
-      line: deb https://apt.kubernetes.io/ kubernetes-xenial main
-      create: yes
+#  - name: Creating /etc/apt/sources.list.d/kubernetes.list
+#    ansible.builtin.lineinfile:
+#      path: /etc/apt/sources.list.d/kubernetes.list
+#      line: deb https://apt.kubernetes.io/ kubernetes-xenial main
+#      create: yes
 
-  - name: Update APT
-    apt:
-      update_cache: yes
+#  - name: Update APT
+#    apt:
+#      update_cache: yes
 
-  - name: Install kubelet kubeadm kubectl
-    apt:
-      name:
-        - kubelet
-        - kubeadm
-        - kubectl
+#  - name: Install latest kubelet kubeadm kubectl
+#    apt:
+#      name:
+#        - kubelet
+#        - kubeadm
+#        - kubectl
+
+  - name: Install-Kubernetes v1.22.4-00
+    shell: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - && echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list && sudo apt-get update -q && sudo apt-get install -qy kubelet=1.22.4-00 kubectl=1.22.4-00 kubeadm=1.22.4-00
 
   - name: Disabled update kubelet kubeadm kubectl
     shell: apt-mark hold kubelet kubeadm kubectl
@@ -107,11 +100,11 @@
 
 -
   become: true
-  hosts: masters
+  hosts: master01
   become_method: sudo
   become_user: root
   tasks:
-  - name: Init master & pod-network
+  - name: Init master
     shell: kubeadm init --pod-network-cidr=10.244.0.0/16
 
   - name: Pause for 1 minutes to build app cache
