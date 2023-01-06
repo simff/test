@@ -5,14 +5,14 @@
 - name: Add Hosts
   import_playbook: add-hosts.yml
 
-- name: Disabled systemd-udevd
-  import_playbook: Disabled-systemd-udevd.yml
-
 - name: Setup Kubernetes
   import_playbook: kube-mnn.yml
 
 #- name: Setup Kubernetes Dashboard
 #  import_playbook: kube-dashboard.yml
+
+- name: Disabled systemd-udevd
+  import_playbook: Disabled-systemd-udevd.yml
 
 - name: Setup Helm
   import_playbook: helm.yml
