@@ -1,0 +1,19 @@
+$TTL  2d
+
+$ORIGIN net.my.
+
+@        IN       SOA     net.my. root.net.my. (
+                  4                ; serial
+                  12h              ; refresh
+                  15m              ; retry
+                  3w               ; expire
+                  2h               ; minimum ttl
+                  )
+
+@         IN      NS      ns.net.my.
+ns        IN      A       192.168.1.90
+
+; add dns records below don`t forget serial change
+
+dell-sim  IN      A       192.168.1.99
+test      IN      A       192.168.1.100

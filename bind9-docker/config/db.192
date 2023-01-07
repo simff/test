@@ -1,0 +1,19 @@
+$TTL  2d
+
+$ORIGIN 1.168.192.in-addr.arpa.
+
+@        IN       SOA     net.my. root.net.my. (
+                  4                ; serial
+                  12h              ; refresh
+                  15m              ; retry
+                  3w               ; expire
+                  2h               ; minimum ttl
+                  )
+
+@         IN      NS      ns.
+90        IN      PTR     ns.net.my.
+
+; add dns records below don`t forget serial change
+
+99        IN      PTR     del-sim.net.my.
+100       IN      PTR     test.net.my.
