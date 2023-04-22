@@ -23,9 +23,9 @@
                 insertbefore=BOF
                 line='SELINUX=disabled'
 
-  - name: UFW disabled
-    community.general.ufw:
-      state: disabled
+#  - name: UFW disabled
+#    community.general.ufw:
+#      state: disabled
 
   - name: Unconditionally reboot the machine with all defaults
     ansible.builtin.reboot:

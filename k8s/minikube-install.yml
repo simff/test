@@ -10,16 +10,17 @@
       dest: "/etc/hosts"
       content: |
         127.0.0.1 localhost
-        192.168.1.122 minikube
+        192.168.1.95 minikube.my
+        192.168.1.90 gitlab.my
 
-  - name: Selinux Disabled
-    lineinfile: dest=/etc/selinux/config
-                regexp='^SELINUX='
-                insertbefore=BOF
-                line='SELINUX=disabled'
-  - name: UFW disabled
-    community.general.ufw:
-      state: disabled
+#  - name: Selinux Disabled
+#    lineinfile: dest=/etc/selinux/config
+#                regexp='^SELINUX='
+#                insertbefore=BOF
+#                line='SELINUX=disabled'
+#  - name: UFW disabled
+#    community.general.ufw:
+#      state: disabled
   - name: Changes sudoers
     lineinfile: dest=/etc/sudoers
                 regexp='^%sudo'
@@ -76,4 +77,5 @@
       mode: "0755"
 
   - name: minikube start
-    shell: minikube start --force
+    shell: minikube start --cpus=2 --cni=flannel --kubernetes-version=stable --memory=2g --force
+
