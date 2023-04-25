@@ -27,5 +27,5 @@
 #    community.general.ufw:
 #      state: disabled
 
-#  - name: Unconditionally reboot the machine with all defaults
-#    ansible.builtin.reboot:
+  - name: Unconditionally reboot the machine with all defaults
+    ansible.builtin.reboot:
