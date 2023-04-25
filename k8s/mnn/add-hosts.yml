@@ -13,4 +13,4 @@
         127.0.0.1 localhost
         {{ hostvars['master01'].ansible_host }} {{ hostvars['master01'].inventory_hostname }}
         {{ hostvars['worknode01'].ansible_host }} {{ hostvars['worknode01'].inventory_hostname }}
-        {{ hostvars['worknode02'].ansible_host }} {{ hostvars['worknode02'].inventory_hostname }}
+#        {{ hostvars['worknode02'].ansible_host }} {{ hostvars['worknode02'].inventory_hostname }}
