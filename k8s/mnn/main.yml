@@ -1,18 +1,21 @@
 ---
-- name: Disable autoupdate
-  import_playbook: disable-autoupdate.yml
+#- name: Disable autoupdate
+#  import_playbook: disable-autoupdate.yml
 
-- name: Add Hosts
-  import_playbook: add-hosts.yml
+#- name: Add Hosts
+#  import_playbook: add-hosts.yml
 
 - name: Setup Kubernetes
   import_playbook: kube-mnn.yml
 
+- name: The Kubernetes test
+  import_playbook: test.yml
+
 #- name: Setup Kubernetes Dashboard
 #  import_playbook: kube-dashboard.yml
 
-- name: Setup Helm
-  import_playbook: helm.yml
+#- name: Setup Helm
+#  import_playbook: helm.yml
 
 #- name: Setup nginx-ingress-controller with prometheus for grafana
 #  import_playbook: nginx-ingress-controller.yml

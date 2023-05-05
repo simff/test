@@ -68,13 +68,18 @@
       state: "restarted"
       enabled: "yes"
 
-  - name: Install-Kubernetes v1.22.4-00
-    shell: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - && echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list && sudo apt-get update -q && sudo apt-get install -qy kubelet=1.22.4-00 kubectl=1.22.4-00 kubeadm=1.22.4-00
+# View the name of the correct version: curl -s https://packages.cloud.google.com/apt/dists/kubernetes-xenial/main/binary-amd64/Packages | grep Version | awk '{print $2}'
+
+#  - name: Install-Kubernetes v1.22.4-00
+#    shell: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - && echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list && sudo apt-get update -q && sudo apt-get install -qy kubelet=1.22.4-00 kubectl=1.22.4-00 kubeadm=1.22.4-00
+
+  - name: Install-Kubernetes v1.21.14-00
+    shell: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - && echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list && sudo apt-get update -q && sudo apt-get install -qy kubelet=1.21.14-00 kubectl=1.21.14-00 kubeadm=1.21.14-00
 
   - name: Disabled update kubelet kubeadm kubectl
     shell: apt-mark hold kubelet kubeadm kubectl
 
-  - name: Pause for 1 minutes to build app cache
+  - name: The pause for 1 minutes to build app cache
     pause:
       minutes: 1
 
@@ -87,7 +92,7 @@
   - name: Init master
     shell: kubeadm init --pod-network-cidr=10.244.0.0/16
 
-  - name: Pause for 1 minutes to build app cache
+  - name: The pause for 1 minutes to build app cache
     pause:
       minutes: 1
 
@@ -103,7 +108,7 @@
   - name: Apply flannel
     shell: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
 
-  - name: Pause for 1 minutes to build app cache
+  - name: The pause for 1 minutes to build app cache
     pause:
       minutes: 1
 
