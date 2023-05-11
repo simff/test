@@ -11,6 +11,9 @@
 - name: The Kubernetes test
   import_playbook: test.yml
 
+- name: Private Docker Registry Connect
+  import_playbook: registry-connect.yml
+
 #- name: Setup Kubernetes Dashboard
 #  import_playbook: kube-dashboard.yml
 

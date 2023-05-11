@@ -73,8 +73,8 @@
 #  - name: Install-Kubernetes v1.22.4-00
 #    shell: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - && echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list && sudo apt-get update -q && sudo apt-get install -qy kubelet=1.22.4-00 kubectl=1.22.4-00 kubeadm=1.22.4-00
 
-  - name: Install-Kubernetes v1.21.14-00
-    shell: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - && echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list && sudo apt-get update -q && sudo apt-get install -qy kubelet=1.21.14-00 kubectl=1.21.14-00 kubeadm=1.21.14-00
+  - name: Install-Kubernetes 1.16.15-00
+    shell: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - && echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list && sudo apt-get update -q && sudo apt-get install -qy kubelet=1.16.15-00 kubectl=1.16.15-00 kubeadm=1.16.15-00
 
   - name: Disabled update kubelet kubeadm kubectl
     shell: apt-mark hold kubelet kubeadm kubectl

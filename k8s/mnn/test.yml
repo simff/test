@@ -51,9 +51,12 @@
   - name: Apply my-web.yaml
     shell: kubectl apply -f my-web.yaml
 
-  - name: The pause for 20 seconds to pod up
-    pause:
-      seconds: 20
-
   - name: Create externalIPs
     shell: kubectl patch svc my-web-service -p '{"spec":{"externalIPs":["{{ hostvars['master01'].ansible_host }}"]}}'
+
+  - name: The pause for 100 seconds to pod up
+    pause:
+      seconds: 100
+
+  - name: Test service my-web
+    shell: curl {{ hostvars['master01'].ansible_host }}

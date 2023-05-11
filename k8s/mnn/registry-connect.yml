@@ -1,0 +1,69 @@
+---
+-
+  become: true
+  hosts: master01
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install packeges
+    apt:
+      name:
+        - libnss3-tools
+        - golang-go
+        - git
+        - curl
+
+  - name: Create directory /opt/mkcert
+    ansible.builtin.file:
+      path: /opt/mkcert
+      state: directory
+      mode: '0755'
+
+  - name: Git init in /opt/mkcert
+    shell: cd /opt/mkcert; git init; git clone https://github.com/FiloSottile/mkcert; cd mkcert; go build -ldflags "-X main.Version=$(git describe --tags)"; cp mkcert /usr/local/bin/
+
+  - name: Install mkcert
+    shell: mkcert -install
+
+  - name: Create certificate registry.my
+    shell: mkcert registry.my
+
+  - name: Copy cetificates to the registry server
+    shell: scp registry.my.pem registry.my-key.pem registry.my:/var/opt/gitlab/nginx/ssl/
+
+  - name: Restart gitlab
+    shell: ssh registry.my "gitlab-ctl restart"
+
+  - name: The pause 20 seconds
+    pause:
+      seconds: 20
+
+  - name: Test certificate
+    shell: curl -u user:1234qwer https://registry.my/v2/
+
+#  - name: kubectl create secret docker-registry regsecret
+#    shell: kubectl create secret docker-registry regsecret --docker-server=https://registry.my/v2/ --docker-username=user --docker-password=1234qwer --docker-email=user@net.my
+
+#  - name: Create pod.yaml
+#    copy:
+#      dest: "/root/pod.yaml"
+#      content: |
+#        apiVersion: v1
+#        kind: Pod
+#        metadata:
+#          name: private-reg
+#        spec:
+#          containers:
+#          - name: private-reg-container
+#            image: image:test6
+#            imagePullPolicy: Always
+#          restartPolicy: Always
+#          imagePullSecrets:
+#          - name: regsecret
+
+#  - name: kubectl create Pod
+#    shell: kubectl apply -f pod.yaml
