@@ -17,6 +17,14 @@
         - git
         - curl
 
+  - name: Generate an OpenSSH keypair with the default values (4096 bits, rsa)
+    community.crypto.openssh_keypair: # ansible-galaxy collection install community.crypto
+      path: /root/.ssh/id_rsa
+
+  - name: Copy public key in buffer
+    shell: cat /root/.ssh/id_rsa.pub
+    register: rsa_pub
+
   - name: Create directory /opt/mkcert
     ansible.builtin.file:
       path: /opt/mkcert
@@ -31,12 +39,28 @@
 
   - name: Create certificate registry.my
     shell: mkcert registry.my
-
+# ------------------------------------------------------------------------------
+-
+  become: true
+  hosts: registry
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Add SSH public key
+    authorized_key: user=root key=" {{ hostvars['master01'].rsa_pub.stdout }} "
+# ------------------------------------------------------------------------------
+-
+  become: true
+  hosts: master01
+  become_method: sudo
+  become_user: root
+  tasks:
   - name: Copy cetificates to the registry server
-    shell: scp registry.my.pem registry.my-key.pem registry.my:/var/opt/gitlab/nginx/ssl/
+    shell: scp -o StrictHostKeyChecking=no registry.my.pem registry.my-key.pem registry.my:/var/opt/gitlab/nginx/ssl/
 
   - name: Restart gitlab
     shell: ssh registry.my "gitlab-ctl restart"
+    ignore_errors: true
 
   - name: The pause 20 seconds
     pause:
@@ -45,25 +69,60 @@
   - name: Test certificate
     shell: curl -u user:1234qwer https://registry.my/v2/
 
-#  - name: kubectl create secret docker-registry regsecret
-#    shell: kubectl create secret docker-registry regsecret --docker-server=https://registry.my/v2/ --docker-username=user --docker-password=1234qwer --docker-email=user@net.my
+# ------------------------------------------------------------------------------
+-
+  become: true
+  hosts: worknodes
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Update APT
+    apt:
+      update_cache: yes
 
-#  - name: Create pod.yaml
-#    copy:
-#      dest: "/root/pod.yaml"
-#      content: |
-#        apiVersion: v1
-#        kind: Pod
-#        metadata:
-#          name: private-reg
-#        spec:
-#          containers:
-#          - name: private-reg-container
-#            image: image:test6
-#            imagePullPolicy: Always
-#          restartPolicy: Always
-#          imagePullSecrets:
-#          - name: regsecret
+  - name: Install packeges
+    apt:
+      name:
+        - libnss3-tools
+        - golang-go
+        - git
+        - curl
 
-#  - name: kubectl create Pod
-#    shell: kubectl apply -f pod.yaml
+  - name: Create directory /opt/mkcert
+    ansible.builtin.file:
+      path: /opt/mkcert
+      state: directory
+      mode: '0755'
+
+  - name: Git init in /opt/mkcert
+    shell: cd /opt/mkcert; git init; git clone https://github.com/FiloSottile/mkcert; cd mkcert; go build -ldflags "-X main.Version=$(git describe --tags)"; cp mkcert /usr/local/bin/
+
+  - name: Install mkcert
+    shell: mkcert -install
+
+  - name: Add SSH public key
+    authorized_key: user=root key=" {{ hostvars['master01'].rsa_pub.stdout }} "
+# ------------------------------------------------------------------------------
+-
+  become: true
+  hosts: master01
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Copy root cetificates to worknode01
+    shell: scp -o StrictHostKeyChecking=no /etc/ssl/certs/* worknode01:/etc/ssl/certs/
+
+  - name: Copy root cetificates to worknode02
+    shell: scp -o StrictHostKeyChecking=no /etc/ssl/certs/* worknode02:/etc/ssl/certs/
+
+  - name: Copy root cetificates to worknode03
+    shell: scp -o StrictHostKeyChecking=no /etc/ssl/certs/* worknode03:/etc/ssl/certs/
+# ------------------------------------------------------------------------------
+-
+  become: true
+  hosts: worknodes
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Test certificate
+    shell: curl -u user:1234qwer https://registry.my/v2/

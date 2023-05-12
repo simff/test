@@ -1,0 +1,19 @@
+---
+-
+  become: true
+  hosts: masters,worknodes
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Restart Docker
+    service:
+      name: "docker"
+      state: "restarted"
+      enabled: "yes"
+
+  - name: Docker login
+    shell: docker login -u user -p 1234qwer registry.my
+    ignore_errors: true
+
+  - name: Docker pull
+    shell: docker pull registry.my/image:test
