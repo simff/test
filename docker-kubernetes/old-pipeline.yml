@@ -1,0 +1,36 @@
+
+stages:
+  - before
+  - build
+  - deploy
+  - test
+
+before-job:
+  stage: before
+  script:
+    - echo "before-job"
+    - sudo kubectl delete -f my-web.yaml
+    - docker rmi simff/image:test5
+
+
+build-job:
+  stage: build
+  script:
+    - echo "build-job"
+    - cd docker-build
+    - docker build -t registry.my/image:test6 .
+    - docker push registry.my/image:test6
+
+deploy-job:
+  stage: deploy
+  script:
+    - echo "deploy-job"
+    - sudo kubectl apply -f my-web.yaml
+    - sleep 30
+    - sudo kubectl patch svc my-web-service -p '{"spec":{"externalIPs":["192.168.1.210"]}}'
+
+test-job:
+  stage: test
+  script:
+    - echo "test-job"
+    - curl 192.168.1.210

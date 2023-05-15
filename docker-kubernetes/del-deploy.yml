@@ -1,0 +1,9 @@
+---
+-
+  become: true
+  hosts: master01
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Delete my-web.yaml
+    shell: kubectl delete -f my-web.yaml

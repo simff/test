@@ -1,0 +1,62 @@
+---
+-
+  become: true
+  hosts: master01
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: create my-web.yaml
+    copy:
+      dest: "/root/my-web.yaml"
+      content: |
+        ---
+        apiVersion : apps/v1
+        kind: Deployment
+        metadata:
+          name: my-web
+          labels:
+            app : my-web-k8s
+        spec:
+          selector:
+            matchLabels:
+              project: local-web
+          template:
+            metadata:
+              labels:
+                project: local-web   # Service will look for those PODS Labels!!!
+            spec:
+              containers:
+                - name : my-web
+                  image: registry.my/image:test
+                  ports:
+                    - containerPort: 80
+        ---
+        apiVersion: v1
+        kind: Service
+        metadata:
+          name: my-web-service
+          labels:
+            env  : prod
+            owner: AlexeySimonov
+        spec:
+          selector:
+            project: local-web      # Selecting PODs with those Labels
+          ports:
+            - name      : app-listener
+              protocol  : TCP
+              port      : 80  # Port on Load Balancer
+              targetPort: 80  # Port on Pod
+          type: LoadBalancer
+
+  - name: Apply my-web.yaml
+    shell: kubectl apply -f my-web.yaml
+
+  - name: Create externalIPs
+    shell: kubectl patch svc my-web-service -p '{"spec":{"externalIPs":["{{ hostvars['master01'].ansible_host }}"]}}'
+
+  - name: The pause for 20 seconds to pod up
+    pause:
+      seconds: 20
+
+#  - name: Test service my-web
+#    shell: curl {{ hostvars['master01'].ansible_host }}

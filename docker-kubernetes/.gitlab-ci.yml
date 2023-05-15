@@ -1,0 +1,35 @@
+stages:
+  - before
+  - build
+  - deploy
+  - test
+
+before-job:
+  stage: before
+  script:
+    - echo "before-job"
+    - sudo ansible-playbook -i hosts.ini del-deploy.yml
+    - docker rmi registry.my/image:test
+    - curl -u user:1234qwer -s -X DELETE http://172.19.0.2:5000/v2/image/manifests/sha256:80a93e925273326c3188270c10af592f2d7df05610fc0422c9b394725cff1131
+    - docker login -u user -p 1234qwer registry.my
+
+build-job:
+  stage: build
+  script:
+    - echo "build-job"
+    - cd docker-build
+    - docker build -t registry.my/image:test .
+    - docker push registry.my/image:test
+
+deploy-job:
+  stage: deploy
+  script:
+    - echo "deploy-job"
+    - sudo ansible-playbook -i hosts.ini docker-pull.yml
+    - sudo ansible-playbook -i hosts.ini test.yml
+
+test-job:
+  stage: test
+  script:
+    - echo "test-job"
+    - curl 192.168.1.210
