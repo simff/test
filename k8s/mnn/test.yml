@@ -61,5 +61,5 @@
   - name: Test service my-web
     shell: curl {{ hostvars['master01'].ansible_host }}
 
-#  - name: Apply my-web.yaml
-#    shell: kubectl delete -f my-web.yaml
+  - name: Delate my-web.yaml
+    shell: kubectl delete -f my-web.yaml

@@ -112,15 +112,19 @@
   - name: Copy root cetificates to worknode01
     shell: scp -o StrictHostKeyChecking=no /etc/ssl/certs/* worknode01:/etc/ssl/certs/
 
-  - name: Copy root cetificates to worknode02
-    shell: scp -o StrictHostKeyChecking=no /etc/ssl/certs/* worknode02:/etc/ssl/certs/
+#  - name: Copy root cetificates to worknode02
+#    shell: scp -o StrictHostKeyChecking=no /etc/ssl/certs/* worknode02:/etc/ssl/certs/
+
+#  - name: Copy root cetificates to worknode03
+#    shell: scp -o StrictHostKeyChecking=no /etc/ssl/certs/* worknode03:/etc/ssl/certs/
 
   - name: Copy root cetificates to worknode03
-    shell: scp -o StrictHostKeyChecking=no /etc/ssl/certs/* worknode03:/etc/ssl/certs/
+    shell: scp /etc/ssl/certs/* registry.my:/etc/ssl/certs/
+
 # ------------------------------------------------------------------------------
 -
   become: true
-  hosts: worknodes
+  hosts: worknodes,registry
   become_method: sudo
   become_user: root
   tasks:
