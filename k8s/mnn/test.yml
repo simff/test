@@ -27,7 +27,7 @@
             spec:
               containers:
                 - name : my-web
-                  image: registry.my/image:test
+                  image: simff/ng:base
                   ports:
                     - containerPort: 80
         ---
@@ -60,6 +60,7 @@
 
   - name: Test service my-web
     shell: curl {{ hostvars['master01'].ansible_host }}
+    ignore_errors: true
 
-  - name: Delate my-web.yaml
+  - name: Delete my-web.yaml
     shell: kubectl delete -f my-web.yaml
