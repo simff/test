@@ -14,8 +14,8 @@
 #- name: Setup docker-pull
 #  import_playbook: docker-pull.yml
 
-- name: Setup test
-  import_playbook: test.yml
+#- name: Setup test
+#  import_playbook: test.yml
 
 #- name: Setup Kubernetes Dashboard
 #  import_playbook: kube-dashboard.yml
