@@ -23,6 +23,9 @@
   - name: Swap-Off
     shell: swapoff -a
 
+  - name: Swap-Off
+    shell: systemctl mask swap.target
+
   - name: Changes /etc/fstab
     ansible.builtin.lineinfile:
       path: /etc/fstab
