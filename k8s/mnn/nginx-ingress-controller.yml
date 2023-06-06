@@ -12,38 +12,5 @@
   - name: Install prometheus
     shell: kubectl apply --kustomize github.com/kubernetes/ingress-nginx/deploy/prometheus/
 
-  - name: Create exec file port-forward-ingress
-    copy:
-        dest: "/usr/local/bin/port-forward-ingress"
-        content: |
-          #!/bin/bash
-          sleep 60 # wait for running pod
-          sudo kubectl port-forward -n ingress-nginx --address 192.168.1.111 svc/ingress-nginx-controller 80:80
-
-  - name: Change file permissions port-forward-ingress
-    ansible.builtin.file:
-      path: /usr/local/bin/port-forward-ingress
-      mode: '0777'
-
-  - name: Create service port-forward-ingress
-    copy:
-        dest: "/etc/systemd/system/port-forward-ingress.service"
-        content: |
-          [Unit]
-          Description=Kubernetes Proxy
-          After=kubelet.service
-          [Service]
-          ExecStart=/usr/local/bin/port-forward-ingress
-          Type=idle
-          KillMode=process
-          SyslogIdentifier=port-forward-ingress.service
-          SyslogFacility=daemon
-          Restart=on-failure
-          [Install]
-          WantedBy=multi-user.target
-
-  - name: Start port-forward-ingress service
-    service:
-        name: "port-forward-ingress"
-        state: "started"
-        enabled: "yes"
+  - name: Apply External IP
+    shell: kubectl patch svc ingress-nginx-controller -n ingress-nginx -p '{"spec":{"externalIPs":["{{ hostvars['master01'].ansible_host }}"]}}'
