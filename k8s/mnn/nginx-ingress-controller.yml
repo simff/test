@@ -14,3 +14,6 @@
 
   - name: Apply External IP
     shell: kubectl patch svc ingress-nginx-controller -n ingress-nginx -p '{"spec":{"externalIPs":["{{ hostvars['master01'].ansible_host }}"]}}'
+
+# Dashboard Grafana 9614
+
