@@ -1,0 +1,12 @@
+---
+-
+  become: true
+  hosts: all
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Install-Kubernetes 1.19.16-00
+    shell: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - && echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list && sudo apt-get update -q && sudo apt-get install -qy kubelet=1.19.16-00 kubectl=1.19.16-00 kubeadm=1.19.16-00
+
+  - name: Disabled update kubelet kubeadm kubectl
+    shell: apt-mark hold kubelet kubeadm kubectl

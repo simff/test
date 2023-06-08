@@ -5,8 +5,8 @@
 - name: Add Hosts
   import_playbook: add-hosts.yml
 
-- name: Setup Kubernetes
-  import_playbook: kube-mnn.yml
+#- name: Setup Kubernetes
+#  import_playbook: kube-mnn.yml
 
 #- name: Setup registry-connect
 #  import_playbook: registry-connect.yml
@@ -20,11 +20,11 @@
 #- name: Setup Kubernetes Dashboard
 #  import_playbook: kube-dashboard.yml
 
-- name: Setup Helm
-  import_playbook: helm.yml
+#- name: Setup Helm
+#  import_playbook: helm.yml
 
-- name: Setup nginx-ingress-controller with prometheus for grafana
-  import_playbook: nginx-ingress-controller.yml
+#- name: Setup nginx-ingress-controller with prometheus for grafana
+#  import_playbook: nginx-ingress-controller.yml
 
-- name: Setup NFS-Server
-  import_playbook: nfs-server-k8s.yml
+#- name: Setup NFS-Server
+#  import_playbook: nfs-server-k8s.yml

@@ -1,0 +1,152 @@
+---
+-
+  become: true
+  hosts: worknode02
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Disabled AutoUpdate
+    copy:
+      dest: "/etc/apt/apt.conf.d/20auto-upgrades"
+      content: |
+        APT::Periodic::Update-Package-Lists "0";
+        APT::Periodic::Unattended-Upgrade "0";
+
+  - name: Unconditionally reboot the machine with all defaults
+    ansible.builtin.reboot:
+
+-
+  become: true
+  hosts: all
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Add host /etc/hosts
+    copy:
+      dest: "/etc/hosts"
+      content: |
+        127.0.0.1 localhost
+        {{ hostvars['master01'].ansible_host }} {{ hostvars['master01'].inventory_hostname }}
+        {{ hostvars['master02'].ansible_host }} {{ hostvars['master02'].inventory_hostname }}
+        {{ hostvars['master03'].ansible_host }} {{ hostvars['master03'].inventory_hostname }}
+        {{ hostvars['worknode01'].ansible_host }} {{ hostvars['worknode01'].inventory_hostname }}
+        {{ hostvars['worknode02'].ansible_host }} {{ hostvars['worknode02'].inventory_hostname }}
+#        {{ hostvars['worknode03'].ansible_host }} {{ hostvars['worknode03'].inventory_hostname }}
+
+-
+  become: true
+  hosts: worknode02
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install packeges
+    apt:
+      name:
+        - apt-transport-https
+        - curl
+        - wget
+        - git
+        - htop
+        - net-tools
+
+  - name: Swap-Off
+    shell: swapoff -a
+
+  - name: Swap-Off
+    shell: systemctl mask swap.target
+
+  - name: Changes /etc/fstab
+    ansible.builtin.lineinfile:
+      path: /etc/fstab
+      state: absent
+      regexp: 'swap'
+
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install packeges
+    apt:
+      name:
+        - ca-certificates
+
+  - name: Changes /etc/modules-load.d/modules.conf
+    ansible.builtin.lineinfile:
+      path: /etc/modules-load.d/modules.conf
+      line: br_netfilter \noverlay
+      create: yes
+
+  - name: Creating /etc/sysctl.d/kube.conf
+    ansible.builtin.lineinfile:
+      path: /etc/sysctl.d/kube.conf
+      line: net.bridge.bridge-nf-call-iptables = 1
+      create: yes
+
+  - name: Install Docker
+    apt:
+      name:
+        - docker
+        - docker.io
+
+  - name: Creating /etc/docker/daemon.json
+    copy:
+      dest: "/etc/docker/daemon.json"
+      content: |
+        {
+        "exec-opts": ["native.cgroupdriver=systemd"],
+        "log-driver": "json-file",
+        "log-opts": {
+        "max-size": "100m"
+        },
+        "storage-driver": "overlay2",
+        "storage-opts": [
+        "overlay2.override_kernel_check=true"
+        ]
+        }
+
+  - name: Restart Docker
+    service:
+      name: "docker"
+      state: "restarted"
+      enabled: "yes"
+
+  - name: Install-Kubernetes 1.19.16-00
+    shell: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - && echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list && sudo apt-get update -q && sudo apt-get install -qy kubelet=1.19.16-00 kubectl=1.19.16-00 kubeadm=1.19.16-00
+
+  - name: Disabled update kubelet kubeadm kubectl
+    shell: apt-mark hold kubelet kubeadm kubectl
+
+-
+  become: true
+  hosts: master01
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: get join command
+    shell: kubeadm token create --print-join-command
+    register: join_command_raw
+
+  - name: set join command
+    set_fact:
+      join_command: "{{ join_command_raw.stdout_lines[0] }}"
+
+-
+  become: true
+  hosts: worknode02
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Change /etc/environment
+    ansible.builtin.blockinfile:
+      path: /etc/environment
+      block: |
+        KUBECONFIG=/etc/kubernetes/admin.conf
+    environment:
+      KUBECONFIG: /etc/kubernetes/admin.conf
+
+  - name: join cluster
+    shell: "{{ hostvars['master01'].join_command }}"  # set primary master

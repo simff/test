@@ -7,7 +7,6 @@
   tasks:
   - name: Apply calico
     shell: kubectl apply -f https://docs.projectcalico.org/v3.8/manifests/calico.yaml
-#    shell: kubectl apply -f https://github.com/simff/test/blob/master/k8s/mmnn/CNI-Calico.yml
     environment:
       KUBECONFIG: /etc/kubernetes/admin.conf
 

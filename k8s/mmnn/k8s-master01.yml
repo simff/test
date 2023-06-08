@@ -40,7 +40,7 @@
             - http://{{ hostvars['master02'].ansible_host }}:2379
             - http://{{ hostvars['master03'].ansible_host }}:2379
         networking:
-          podSubnet: 172.16.0.0/16
+          podSubnet: 10.244.0.0/16
 #          dnsDomain: "cluster.local"
 #          serviceSubnet: "172.20.0.0/16"
 -
@@ -51,6 +51,10 @@
   tasks:
   - name: Kube-Init-Master01
     shell: kubeadm init --config=kube-init.yaml
+
+  - name: Pause for 5 minutes to prepare the master 01
+    pause:
+      minutes: 5
 
   - name: Scp Pki Master02
     shell: scp -r /etc/kubernetes/pki master02:/etc/kubernetes/

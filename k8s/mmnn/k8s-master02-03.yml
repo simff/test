@@ -16,6 +16,6 @@
   - name: Kube-Init-Masters
     shell: kubeadm init --config=kube-init.yaml
 
-  - name: Waiting for 2 minutes until the nodes ready
+  - name: Waiting for 2 minutes until the masters ready
     pause:
       minutes: 2
