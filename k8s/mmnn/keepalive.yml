@@ -22,7 +22,7 @@
       block: |
         net.ipv4.ip_forward = 1
 
-  - name: Change /etc/sysctl.conf
+  - name: sysctl -p
     shell: sysctl -p
 
   - name: Change keepalived.service
@@ -45,7 +45,7 @@
           state BACKUP
           interface ens33
           virtual_router_id 10
-          priority 100
+          priority {{priority}}
           advert_int 1
           preempt_delay 0
           virtual_ipaddress {
