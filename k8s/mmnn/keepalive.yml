@@ -1,0 +1,62 @@
+---
+-
+  become: true
+  hosts: master01,master02
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install packeges
+    apt:
+      name:
+        - net-tools
+        - curl
+        - keepalived
+
+  - name: Change /etc/sysctl.conf
+    ansible.builtin.blockinfile:
+      path: /etc/sysctl.conf
+      block: |
+        net.ipv4.ip_forward = 1
+
+  - name: Change /etc/sysctl.conf
+    shell: sysctl -p
+
+  - name: Change keepalived.service
+    lineinfile: dest=/usr/lib/systemd/system/keepalived.service
+                regexp='^Type='
+                insertbefore=BOF
+                line='Type=idle'
+
+  - name: daemon-reload
+    shell: systemctl daemon-reload
+
+  - name: systemctl enable keepalived
+    shell: systemctl enable keepalived
+
+  - name: Create /etc/keepalived/keepalived.conf
+    copy:
+      dest: "/etc/keepalived/keepalived.conf"
+      content: |
+        vrrp_instance my-group {
+          state BACKUP
+          interface ens33
+          virtual_router_id 10
+          priority 100
+          advert_int 1
+          preempt_delay 0
+          virtual_ipaddress {
+          192.168.1.180/24
+          }
+        }
+
+  - name: Restart keepalived
+    service:
+      name: "keepalived"
+      state: "restarted"
+      enabled: "yes"
+
+# kubectl patch svc my-web-service -p '{"spec":{"externalIPs":["192.168.1.180"]}}'

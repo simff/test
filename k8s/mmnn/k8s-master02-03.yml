@@ -1,7 +1,7 @@
 ---
 -
   become: true
-  hosts: master02,master03
+  hosts: master02
   become_method: sudo
   become_user: root
   tasks:

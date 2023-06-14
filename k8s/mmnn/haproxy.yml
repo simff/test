@@ -1,0 +1,37 @@
+---
+-
+  become: true
+  hosts: worknode03, master03
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install packeges
+    apt:
+      name:
+        - haproxy
+        - net-tools
+        - curl
+
+  - name: Change /etc/haproxy/haproxy.cfg
+    ansible.builtin.blockinfile:
+      path: /etc/haproxy/haproxy.cfg
+      block: |
+        frontend k8s
+        bind {{ansible_host}}:8080
+        mode tcp
+        default_backend masters
+        backend masters
+        mode tcp
+        balance roundrobin
+        server master03 {{ hostvars['master03'].ansible_host }}:80 check
+        server worknode03 {{ hostvars['worknode03'].ansible_host }}:80 check
+
+  - name: Restart Haproxy
+    service:
+      name: "haproxy"
+      state: "restarted"
+      enabled: "yes"

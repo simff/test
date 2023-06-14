@@ -1,12 +1,12 @@
 ---
-- name: Disable autoupdate
-  import_playbook: disable-autoupdate.yml
+#- name: Disable autoupdate
+#  import_playbook: disable-autoupdate.yml
 
 - name: Add Hosts
   import_playbook: add-hosts.yml
 
-#- name: Setup Kubernetes
-#  import_playbook: kube-mnn.yml
+- name: Setup Kubernetes
+  import_playbook: kube-mnn.yml
 
 #- name: Setup registry-connect
 #  import_playbook: registry-connect.yml

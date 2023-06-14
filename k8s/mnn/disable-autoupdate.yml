@@ -12,10 +12,10 @@
         APT::Periodic::Update-Package-Lists "0";
         APT::Periodic::Unattended-Upgrade "0";
 
-  - name: Install packeges
-    apt:
-      name:
-        - policycoreutils
+#  - name: Install packeges
+#    apt:
+#      name:
+#        - policycoreutils
 
 #  - name: Selinux Disabled
 #    lineinfile: dest=/etc/selinux/config

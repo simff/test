@@ -1,0 +1,27 @@
+---
+-
+  become: true
+  hosts: master03,worknode03
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install packeges
+    apt:
+      name:
+        - nginx
+
+  - name: Change /var/www/html/index.nginx-debian.html
+    copy:
+      dest: "/var/www/html/index.nginx-debian.html"
+      content: |
+        <h1><font color=green>My Local Web Server   {{ inventory_hostname }} {{ansible_host}}</h1>
+
+  - name: Restart nginx
+    service:
+      name: "nginx"
+      state: "restarted"
+      enabled: "yes"
