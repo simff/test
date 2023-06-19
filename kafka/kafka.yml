@@ -1,0 +1,99 @@
+---
+-
+  become: true
+  hosts: kafka01
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install packeges
+    apt:
+      name:
+        - net-tools
+        - curl
+        - tar
+        - wget
+        - default-jdk
+
+  - name: Add user kafka
+    user: name=kafka shell=/bin/bash password=$y$j9T$EZyMzUhPXARtXrXdrzBTu/$txARf3vpYC.YWhHussYl3tO00oYFhnEV0epoWyGeKmA # /etc/shadow '123qwe'
+
+  - name: Creates home directory kafka
+    file:
+      owner: kafka
+      group: kafka
+      path: /home/kafka
+      state: directory
+
+  - name: Creates directory /opt/kafka
+    file:
+      path: /opt/kafka
+      state: directory
+
+  - name: Binary download 3.5.0
+    shell: wget https://downloads.apache.org/kafka/3.5.0/kafka_2.13-3.5.0.tgz
+
+  - name: Untar
+    shell: tar zxf kafka_*.tgz -C /opt/kafka --strip 1
+
+  - name: Change owner/group /opt/kafka
+    shell: chown -R kafka:kafka /opt/kafka
+
+  - name: Add line /opt/kafka/config/server.properties
+    lineinfile:
+      dest: /opt/kafka/config/server.properties
+      line: "delete.topic.enable = true"
+      state: present
+      insertafter: EOF
+      create: True
+
+  - name: Creating /etc/systemd/system/zookeeper.service
+    copy:
+      dest: "/etc/systemd/system/zookeeper.service"
+      content: |
+        [Unit]
+        Description=Zookeeper Service
+        Requires=network.target remote-fs.target
+        After=network.target remote-fs.target
+        [Service]
+        Type=idle
+        User=kafka
+        ExecStart=/opt/kafka/bin/zookeeper-server-start.sh /opt/kafka/config/zookeeper.properties
+        ExecStop=/opt/kafka/bin/zookeeper-server-stop.sh
+        ExecReload=/bin/kill -HUP $MAINPID
+        Restart=on-failure
+        [Install]
+        WantedBy=multi-user.target
+
+  - name: Creating /etc/systemd/system/kafka.service
+    copy:
+      dest: "/etc/systemd/system/kafka.service"
+      content: |
+        [Unit]
+        Description=Kafka Service
+        Requires=zookeeper.service
+        After=zookeeper.service
+        [Service]
+        Type=idle
+        User=kafka
+        ExecStart=/bin/sh -c '/opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/server.properties > /opt/kafka/kafka.log 2>&1'
+        ExecStop=/opt/kafka/bin/kafka-server-stop.sh
+        ExecReload=/bin/kill -HUP $MAINPID
+        Restart=on-failure
+        [Install]
+        WantedBy=multi-user.target
+
+  - name: daemon-reload
+    shell: systemctl daemon-reload
+
+  - name: systemctl enable zookeeper kafka
+    shell: systemctl enable zookeeper kafka
+
+  - name: Restart kafka
+    service:
+      name: "kafka"
+      state: "restarted"
+      enabled: "yes"

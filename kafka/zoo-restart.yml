@@ -1,0 +1,56 @@
+---
+-
+  become: true
+  hosts: all
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Stopped zookeeper
+    service:
+      name: "zookeeper"
+      state: "stopped"
+      enabled: "yes"
+
+-
+  become: true
+  hosts: kafka01
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Start zookeeper
+    service:
+      name: "zookeeper"
+      state: "started"
+      enabled: "yes"
+
+  - name: Pause for 10 seconds to build app cache
+    pause:
+      seconds: 10
+
+-
+  become: true
+  hosts: kafka02
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Start zookeeper
+    service:
+      name: "zookeeper"
+      state: "started"
+      enabled: "yes"
+
+  - name: Pause for 10 seconds to build app cache
+    pause:
+      seconds: 10
+
+-
+  become: true
+  hosts: kafka03
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Start zookeeper
+    service:
+      name: "zookeeper"
+      state: "started"
+      enabled: "yes"

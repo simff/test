@@ -1,0 +1,43 @@
+---
+-
+  become: true
+  hosts: all
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install packeges
+    apt:
+      name:
+        - net-tools
+        - curl
+        - tar
+        - wget
+        - default-jdk
+
+  - name: Add user kafka
+    user: name=kafka shell=/bin/bash password=$y$j9T$EZyMzUhPXARtXrXdrzBTu/$txARf3vpYC.YWhHussYl3tO00oYFhnEV0epoWyGeKmA # /etc/shadow '123qwe'
+
+  - name: Creates home directory kafka
+    file:
+      owner: kafka
+      group: kafka
+      path: /home/kafka
+      state: directory
+
+  - name: Creates directory /opt/kafka
+    file:
+      path: /opt/kafka
+      state: directory
+
+  - name: Binary download 3.5.0
+    shell: wget https://downloads.apache.org/kafka/3.5.0/kafka_2.13-3.5.0.tgz
+
+  - name: Untar
+    shell: tar zxf kafka_*.tgz -C /opt/kafka --strip 1
+
+  - name: Change owner/group /opt/kafka
+    shell: chown -R kafka:kafka /opt/kafka

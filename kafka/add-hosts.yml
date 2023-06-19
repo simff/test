@@ -1,0 +1,22 @@
+---
+-
+  become: true
+  hosts: all
+  become_method: sudo
+  become_user: root
+  tasks:
+# ----- /etc/hosts ---------------------
+  - name: Add host /etc/hosts
+    copy:
+      dest: "/etc/hosts"
+      content: |
+        127.0.0.1 localhost
+        {{ hostvars['kafka01'].ansible_host }} {{ hostvars['kafka01'].inventory_hostname }}
+        {{ hostvars['kafka02'].ansible_host }} {{ hostvars['kafka02'].inventory_hostname }}
+        {{ hostvars['kafka03'].ansible_host }} {{ hostvars['kafka03'].inventory_hostname }}
+
+#  - name: Add a line to /etc/hosts
+#    ansible.builtin.lineinfile:
+#      path: /etc/hosts
+#      line: 192.168.1.210 registry.example.com
+#      create: yes

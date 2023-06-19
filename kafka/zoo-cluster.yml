@@ -1,0 +1,69 @@
+---
+-
+  become: true
+  hosts: all
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Create a /opt/zookeeper
+    ansible.builtin.file:
+      path: /opt/zookeeper
+      state: directory
+      mode: '0777'
+
+  - name: Creating /opt/kafka/config/zookeeper.properties
+    copy:
+      owner: kafka
+      group: kafka
+      dest: "/opt/kafka/config/zookeeper.properties"
+      content: |
+        tickTime=2000
+        dataDir=/opt/zookeeper
+        clientPort=2181
+        maxClientCnxns=60
+        initLimit=300
+        syncLimit=5
+        server.1={{ hostvars['kafka01'].ansible_host}}:2888:3888
+        server.2={{ hostvars['kafka02'].ansible_host}}:2888:3888
+        server.3={{ hostvars['kafka03'].ansible_host}}:2888:3888
+        4lw.commands.whitelist=stat
+        admin.enableServer=true
+        admin.serverPort=8080
+
+
+  - name: Creating /opt/zookeeper/myid
+    copy:
+      dest: "/opt/zookeeper/myid"
+      mode: '0666'
+      content: |
+        {{id}}
+
+  - name: Creating /etc/systemd/system/zookeeper.service
+    copy:
+      dest: "/etc/systemd/system/zookeeper.service"
+      content: |
+        [Unit]
+        Description=Zookeeper Service
+        Requires=network.target remote-fs.target
+        After=network.target remote-fs.target
+        [Service]
+        Type=idle
+        User=kafka
+        ExecStart=/opt/kafka/bin/zookeeper-server-start.sh /opt/kafka/config/zookeeper.properties
+        ExecStop=/opt/kafka/bin/zookeeper-server-stop.sh
+        ExecReload=/bin/kill -HUP $MAINPID
+        Restart=on-failure
+        [Install]
+        WantedBy=multi-user.target
+
+  - name: daemon-reload
+    shell: systemctl daemon-reload
+
+  - name: systemctl enable zookeeper
+    shell: systemctl enable zookeeper
+
+  - name: Restart zookeeper
+    service:
+      name: "zookeeper"
+      state: "restarted"
+      enabled: "yes"
