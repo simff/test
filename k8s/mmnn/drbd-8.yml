@@ -1,0 +1,113 @@
+---
+-
+  become: true
+  hosts: worknode01,worknode02
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Creates directory /mirror
+    file:
+      mode: "0777"
+      path: /mirror
+      state: directory
+
+  - name: Add host /etc/hosts
+    copy:
+      dest: "/etc/hosts"
+      content: |
+        127.0.0.1 localhost
+        {{ hostvars['worknode01'].ansible_host }} {{ hostvars['worknode01'].inventory_hostname }}
+        {{ hostvars['worknode02'].ansible_host }} {{ hostvars['worknode02'].inventory_hostname }}
+
+  - name: Add script /root/mk-sdb1.sh
+    copy:
+      dest: "/root/mk-sdb1.sh"
+      mode: "0777"
+      content: |
+        #!/bin/bash
+        echo -e "n\np\n1\n\n\nw" | fdisk /dev/sdb
+
+  - name: Make /dev/sdb1
+    shell: ./mk-sdb1.sh
+
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install drbd
+    apt:
+      name:
+        - drbd-utils
+    ignore_errors: true
+
+  - name: Add config /etc/drbd.conf
+    copy:
+      dest: "/etc/drbd.conf"
+      content: |
+        global { usage-count no; }
+        common { syncer { rate 1023M; } }
+        resource r0 {
+                protocol C;
+                startup {
+                        wfc-timeout  15;
+                        degr-wfc-timeout 60;
+                }
+                net {
+                        cram-hmac-alg sha1;
+                        shared-secret "secret";
+                }
+                on worknode01 {
+                        device /dev/drbd0;
+                        disk /dev/sdb1;
+                        address 192.168.1.191:7788;
+                        meta-disk internal;
+                }
+                on worknode02 {
+                        device /dev/drbd0;
+                        disk /dev/sdb1;
+                        address 192.168.1.192:7788;
+                        meta-disk internal;
+                }
+        }
+
+  - name: drbdadm create-md r0
+    shell: drbdadm create-md r0
+
+  - name: systemctl enable drbd
+    shell: systemctl enable drbd
+
+  - name: Restart drbd
+    service:
+      name: "drbd"
+      state: "restarted"
+      enabled: "yes"
+
+-
+  become: true
+  hosts: worknode01
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Create script /root/activate-mirror.sh
+    copy:
+      dest: "/root/activate-mirror.sh"
+      mode: "0777"
+      content: |
+        #!/bin/bash
+        drbdadm -- --overwrite-data-of-peer primary all
+        sleep 60
+        mkfs.xfs /dev/drbd0
+        mount /dev/drbd0 /mirror
+        touch /mirror/test-file
+
+  - name: Activate-mirror
+    shell: ./activate-mirror.sh
+
+-
+  become: true
+  hosts: worknode02
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: drbdadm secondary
+    shell: drbdadm secondary r0

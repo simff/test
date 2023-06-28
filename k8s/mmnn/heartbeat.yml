@@ -1,0 +1,59 @@
+---
+-
+  become: true
+  hosts: worknode01,worknode02
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Add host /etc/hosts
+    copy:
+      dest: "/etc/hosts"
+      content: |
+        127.0.0.1 localhost
+        {{ hostvars['worknode01'].ansible_host }} {{ hostvars['worknode01'].inventory_hostname }}
+        {{ hostvars['worknode02'].ansible_host }} {{ hostvars['worknode02'].inventory_hostname }}
+
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install heartbeat
+    apt:
+      name:
+        - heartbeat
+
+  - name: Create /etc/heartbeat/ha.cf
+    copy:
+      dest: "/etc/heartbeat/ha.cf"
+      content: |
+        logfacility     local0
+        keepalive 2
+        deadtime 30
+        warntime 10
+        initdead 120
+        bcast ens33
+        node worknode01
+        node worknode02
+
+  - name: Create /etc/heartbeat/authkeys
+    copy:
+      mode: "0600"
+      dest: "/etc/heartbeat/authkeys"
+      content: |
+        auth 3
+        3 md5 password
+
+  - name: Create /etc/heartbeat/haresources
+    copy:
+      dest: "/etc/heartbeat/haresources"
+      content: |
+        worknode01 IPaddr::192.168.1.190/24/ens33 drbddisk::r0 Filesystem::/dev/drbd0::/mirror::xfs nfs-kernel-server
+
+#  - name: Restart heartbeat
+#    service:
+#      name: "heartbeat"
+#      state: "restarted"
+#      enabled: "yes"
+
+  - name: Unconditionally reboot the machine with all defaults
+    ansible.builtin.reboot:
