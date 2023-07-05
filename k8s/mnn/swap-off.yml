@@ -1,0 +1,18 @@
+---
+-
+  become: true
+  hosts: all
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Swap-Off
+    shell: swapoff -a
+
+  - name: Swap-Off
+    shell: systemctl mask swap.target
+
+  - name: Changes /etc/fstab
+    ansible.builtin.lineinfile:
+      path: /etc/fstab
+      state: absent
+      regexp: 'swap'

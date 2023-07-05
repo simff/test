@@ -1,0 +1,27 @@
+---
+-
+  become: true
+  hosts: masters
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Install packeges
+    apt:
+      name: apt-transport-https
+
+  - name: Create apt-key
+    shell: curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -
+
+  - name: Create repo for helm
+    shell: echo "deb https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install packeges
+    apt:
+      name: helm
+
+  - name: Helm repo add
+    shell: helm repo add bitnami https://charts.bitnami.com/bitnami

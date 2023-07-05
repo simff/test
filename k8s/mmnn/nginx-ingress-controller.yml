@@ -1,0 +1,24 @@
+---
+-
+  become: true
+  hosts: master01
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Install ingress-nginx
+    shell: helm upgrade --install ingress-nginx ingress-nginx --repo https://kubernetes.github.io/ingress-nginx --namespace ingress-nginx --create-namespace
+  - name: Upgrade ingress-nginx for prometheus monitor
+    shell: helm upgrade ingress-nginx ingress-nginx --repo https://kubernetes.github.io/ingress-nginx --namespace ingress-nginx --set controller.metrics.enabled=true --set-string controller.podAnnotations."prometheus\.io/scrape"="true" --set-string controller.podAnnotations."prometheus\.io/port"="10254"
+  - name: Install prometheus
+    shell: kubectl apply --kustomize github.com/kubernetes/ingress-nginx/deploy/prometheus/
+
+  - name: Apply External IP
+    shell: kubectl patch svc ingress-nginx-controller -n ingress-nginx -p '{"spec":{"externalIPs":["{{ extip }}"]}}'
+
+  - name: kubectl scale --replicas=2 deployment ingress-nginx-controller
+    shell: kubectl scale --replicas=2 deployment ingress-nginx-controller -n ingress-nginx
+
+  - name: kubectl scale --replicas=2 deployment prometheus-server 
+    shell: kubectl scale --replicas=2 deployment prometheus-server -n ingress-nginx
+
+# Dashboard Grafana 9614

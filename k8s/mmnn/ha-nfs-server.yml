@@ -11,13 +11,13 @@
       path: /mirror
       state: directory
 
-  - name: Add host /etc/hosts
-    copy:
-      dest: "/etc/hosts"
-      content: |
-        127.0.0.1 localhost
-        {{ hostvars['worknode01'].ansible_host }} {{ hostvars['worknode01'].inventory_hostname }}
-        {{ hostvars['worknode02'].ansible_host }} {{ hostvars['worknode02'].inventory_hostname }}
+#  - name: Add host /etc/hosts
+#    copy:
+#      dest: "/etc/hosts"
+#      content: |
+#        127.0.0.1 localhost
+#        {{ hostvars['worknode01'].ansible_host }} {{ hostvars['worknode01'].inventory_hostname }}
+#        {{ hostvars['worknode02'].ansible_host }} {{ hostvars['worknode02'].inventory_hostname }}
 
   - name: Add script /root/mk-sdb1.sh
     copy:
@@ -62,13 +62,13 @@
                 on worknode01 {
                         device /dev/drbd0;
                         disk /dev/sdb1;
-                        address 192.168.1.191:7788;
+                        address {{ hostvars['worknode01'].ansible_host }}:7788;
                         meta-disk internal;
                 }
                 on worknode02 {
                         device /dev/drbd0;
                         disk /dev/sdb1;
-                        address 192.168.1.192:7788;
+                        address {{ hostvars['worknode02'].ansible_host }}:7788;
                         meta-disk internal;
                 }
         }
@@ -164,7 +164,7 @@
   - name: Add nfs sharing to /mirror/exports
     lineinfile:
       dest: /mirror/exports
-      line: "/mirror/export        192.168.1.0/24(rw,no_subtree_check)"
+      line: "/mirror/export        {{shared}}(rw,no_subtree_check)"
       state: present
       insertafter: EOF
       create: True
@@ -207,8 +207,8 @@
         warntime 10
         initdead 120
         bcast ens33
-        node worknode01
-        node worknode02
+        node {{ hostvars['worknode01'].inventory_hostname }}
+        node {{ hostvars['worknode02'].inventory_hostname }}
 
   - name: Create /etc/heartbeat/authkeys
     copy:
@@ -222,7 +222,22 @@
     copy:
       dest: "/etc/heartbeat/haresources"
       content: |
-        worknode01 IPaddr::192.168.1.190/24/ens33 drbddisk::r0 Filesystem::/dev/drbd0::/mirror::xfs nfs-kernel-server
+        worknode01 IPaddr::{{virtip}} drbddisk::r0 Filesystem::/dev/drbd0::/mirror::xfs nfs-kernel-server
 
   - name: Unconditionally reboot the machine with all defaults
     ansible.builtin.reboot:
+
+-
+  become: true
+  hosts: master01,master02
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install packeges
+    apt:
+      name:
+        - nfs-common

@@ -1,0 +1,34 @@
+---
+-
+  become: true
+  hosts: worknode01
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Edit /etc/kubernetes/kubelet.conf
+    lineinfile: dest=/etc/kubernetes/kubelet.conf
+                regexp='https://'
+                line='{{ hostvars['master01'].server }}'
+
+-
+  become: true
+  hosts: worknode02
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Edit /etc/kubernetes/kubelet.conf
+    lineinfile: dest=/etc/kubernetes/kubelet.conf
+                regexp='https://'
+                line='{{ hostvars['master02'].server }}'
+
+-
+  become: true
+  hosts: worknodes
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Restart kubelet
+    service:
+      name: "kubelet"
+      state: "restarted"
+      enabled: "yes"

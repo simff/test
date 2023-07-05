@@ -1,7 +1,7 @@
 ---
 -
   become: true
-  hosts: worknode01,worknode02
+  hosts: master01,master02
   become_method: sudo
   become_user: root
   tasks:
@@ -49,7 +49,7 @@
           advert_int 1
           preempt_delay 0
           virtual_ipaddress {
-          192.168.1.190/24
+          192.168.1.180/24
           }
         }
 
