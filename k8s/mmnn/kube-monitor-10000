@@ -1,0 +1,8 @@
+helm install my-kube-prometheus bitnami/kube-prometheus --create-namespace --namespace my-kube-monitor --set prometheus.service.type=NodePort --set prometheus.service.nodePort=30010 --set replicaCount=2
+
+export NODE_PORT=$(kubectl get --namespace my-kube-monitor  -o jsonpath="{.spec.ports[0].nodePort}" services my-kube-prometheus-prometheus)
+	export NODE_IP=$(kubectl get nodes --namespace  my-kube-monitor -o jsonpath="{.items[0].status.addresses[0].address}")
+	echo "Prometheus URL: http://$NODE_IP:$NODE_PORT/"
+
+Dashboard 10000
+

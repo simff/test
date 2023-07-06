@@ -51,9 +51,9 @@
   - name: Kube-Init-Master01
     shell: kubeadm init --config=kube-init.yaml
 
-  - name: Pause for 5 minutes to prepare the master 01
+  - name: Pause for 10 minutes to prepare the master 01
     pause:
-      minutes: 5
+      minutes: 10
 
   - name: Scp Pki Master02
     shell: scp -r /etc/kubernetes/pki master02:/etc/kubernetes/
