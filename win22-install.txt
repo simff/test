@@ -1,0 +1,22 @@
+Get-WindowsCapability -Online 
+Add-WindowsCapability -Online -Name
+Set-Service -Name sshd -StartupType ‘Automatic’
+Start-Service sshd
+Get-LocalUser
+Remove-LocalUser -Name user -Verbose
+net user adm 1qaz@WSX /add
+Set-LocalUser -Name adm -PasswordNeverExpires $True
+Get-Localuser -Name adm | Add-LocalGroupMember -Group 'Remote Desktop Users'
+Get-Localuser -Name adm | Add-LocalGroupMember -Group 'Administrators'
+Import-Module ServerManager
+Get-WindowsFeature
+Install-WindowsFeature -name AD-Domain-Services
+Import-Module ADDSDeployment
+Install-ADDSDomain - Установить первый контроллер домена в дочернем или дереве домена
+Install-ADDSDomainController - Установить дополнительный контроллер домена
+Install-ADDSForest - Установить первый контроллер в новом лесу
+set-ADAccountPassword -Identity user -Reset
+--------------------------------------------------------------------------------
+Get-CimInstance -Class Win32_ComputerSystem
+
+
