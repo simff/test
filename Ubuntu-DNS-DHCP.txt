@@ -1,0 +1,119 @@
+Master
+apt install bind9 bind9utils -y
+nano /etc/default/named
+OPTIONS="-u bind -4"
+nano /etc/bind/named.conf.options
+acl "trusted" {
+        192.168.1.0/24;   
+};
+options {
+        . . .
+        recursion yes;
+        allow-recursion { trusted; };
+        listen-on { 192.168.1.177; };  
+        allow-transfer { none; };         
+
+        forwarders {
+                192.168.1.1;
+                8.8.8.8;
+        };
+nano /etc/bind/named.conf.local
+zone "test.my" {
+    type master;
+    file "/etc/bind/zones/db.ns1.test.my";  # zone file path
+    allow-transfer { 192.168.1.180; };           # ns2 private IP address - secondary
+};
+
+zone "1.168.192.in-addr.arpa" {
+    type master;
+    file "/etc/bind/zones/db.1.168.192";  # 192.168.1.0/24 subnet
+    allow-transfer { 192.168.1.180; };        # ns2 private IP address - secondary
+};
+mkdir /etc/bind/zones
+nano /etc/bind/zones/db.ns1.test.my
+$TTL    604800
+@       IN      SOA     ns1.test.my. root.ns1.test.my. (
+                              3         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      localhost.
+@       IN      A       127.0.0.1
+@       IN      AAAA    ::1
+
+; name servers - NS records
+        IN      NS      ns1.test.my.
+        IN      NS      ns2.test.my.
+
+; name servers - A records
+ns1.test.my.          IN      A       192.168.1.177
+ns2.test.my.          IN      A       192.168.1.180
+win2022.test.my.      IN      A       192.168.1.170;
+nano /etc/bind/zones/db.1.168.192
+$TTL    604800
+@       IN      SOA     ns1.test.my. root.ns1.test.my. (
+                              3         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      localhost.
+1.0.0   IN      PTR     localhost.
+
+; name servers - NS records
+      IN      NS      ns1.test.my.
+      IN      NS      ns2.test.my.
+
+; PTR Records
+177   IN      PTR     ns1.test.my.    ; 192.168.1.177
+180   IN      PTR     ns2.test.my.    ; 192.168.1.180
+170   IN      PTR     win2022.test.my.  ; 192.168.1.170
+named-checkconf
+systemctl restart bind9.service
+--------------------------------------------------------------------------------------------
+Slave
+apt install bind9 bind9utils -y
+nano /etc/default/named
+OPTIONS="-u bind -4"
+nano /etc/bind/named.conf.options
+acl "trusted" {
+        192.168.1.0/24;   
+};
+options {
+        . . .
+        recursion yes;
+        allow-recursion { trusted; };
+        listen-on { 192.168.1.180; };  
+        allow-transfer { none; };         
+
+        forwarders {
+                192.168.1.1;
+                8.8.8.8;
+        };
+nano /etc/bind/named.conf.local
+zone "test.my" {
+    type slave;
+    file "db.test.my";
+    masters { 192.168.1.177; };
+};
+
+zone "1.168.192.in-addr.arpa" {
+    type slave;
+    file "db.1.168.192";
+    masters { 192.168.1.177; };
+};
+named-checkconf
+systemctl restart bind9.service
+------------------------------------------------------------------------
+DHCP
+nano /etc/resolv.conf
+apt install isc-dhcp-server -y
+nano /etc/default/isc-dhcp-server
+nano /etc/dhcp/dhcpd.conf
+systemctl restart isc-dhcp-server
+systemctl status isc-dhcp-server
+systemctl enable isc-dhcp-server
+dhcp-lease-list

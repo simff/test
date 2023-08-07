@@ -1,0 +1,42 @@
+ssh Administrator@192.168.1.170
+Import-Module ServerManager
+Get-WindowsFeature
+Get-WindowsFeature | ? Name -like '*DHCP*'
+Get-WindowsFeature | ? Name -like '*DNS*'
+Install-WindowsFeature -name DNS
+Install-WindowsFeature -name RSAT-DNS-Server
+Import-Module DNSServer
+Get-DnsServerZone -ComputerName win2022
+Add-DnsServerPrimaryZone -Name test.my -ZoneFile test.dns
+add-DnsServerResourceRecordA -Name win2022 -IPv4Address 192.168.1.170 -ZoneName test.my
+Remove-DnsServerResourceRecord -ZoneName test.my -RRType A -Name win2022 -Force
+Get-DnsServerResourceRecord -ComputerName win2022 -ZoneName test.my
+Install-WindowsFeature -name DHCP -IncludeManagementTools
+Install-WindowsFeature -name RSAT-DHCP
+Import-Module DHCPServer
+Get-Command -Module DHCPServer
+Get-DhcpServerInDC
+Add-DhcpServerInDC -DnsName win2022.test.my -IPAddress 192.168.1.170
+Add-DhcpServerSecurityGroup
+Set-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\ServerManager\Roles\12 -Name ConfigurationState -Value 2
+Add-DhcpServerv4Scope -Name Test -StartRange 192.168.1.150 -EndRange 192.168.1.190 -SubnetMask 255.255.255.0 -State Active
+Get-DhcpServerv4Scope -ComputerName win2022
+Set-DhcpServerv4OptionValue -ScopeID 192.168.1.0 -DnsDomain test.my -DnsServer 192.168.1.170 -Router 192.168.1.1
+Get-DhcpServerv4Scope -ComputerName win2022 | FL *
+Add-DhcpServerv4ExclusionRange -ScopeID 192.168.1.0 -StartRange 192.168.1.170 -EndRange 192.168.1.171
+Set-DhcpServerv4Scope -ScopeID 192.168.1.0 -State Active
+Get-DHCPServerv4Lease -ScopeId 192.168.1.0 -ComputerName win2022
+Add-DhcpServerv4Reservation -ComputerName win2022
+Remove-DhcpServerv4Lease -ComputerName win2022 -IPAddress 192.168.1.151
+Set-DhcpServerv4OptionValue -ScopeID 192.168.1.0 -DnsDomain test.my -DnsServer 192.168.1.170,192.168.1.180 -Router 192.168.1.1
+
+------------------------------------------------------------------------------------
+Resolve-DnsName -Name "win2022.test.my" -Type A -Server 192.168.1.177
+Resolve-DnsName -Name "test.my" -Type NS -Server 192.168.1.177
+
+dhclient eth0
+nmcli device show eth0
+resolvectl status eth0
+ipconfig /release
+ipconfig /renew
+apt install vsftpd -y
