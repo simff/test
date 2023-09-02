@@ -75,6 +75,8 @@ kernel smolensk/linux
 append initrd=smolensk/initrd.gz modprobe.blacklist=evbug auto=true priority=critical debian-installer/locale=en_US console-keymaps-at/keymap=ru hostname=dhcp domain=test.my astra-license/license=true url=tftp://192.168.1.90/smolensk/preseed.cfg interface=auto netcfg/dhcp_timeout=60
 TIMEOUT 1
 ---------------------------------------------------------------------------------------
+cd /data
+wget https://github.com/simff/test/blob/master/netinst.tar.gz
 tar xvf /data/netinst.tar.gz -C /srv/tftp
 nano /srv/tftp/debian-installer/amd64/grub/grub.cfg
 if loadfont $prefix/font.pf2 ; then
