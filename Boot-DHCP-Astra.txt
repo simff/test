@@ -1,0 +1,234 @@
+mkfs -t xfs /dev/sdb1
+df -T
+blkid /dev/sdb1
+nano /etc/fstab
+apt install isc-dhcp-server tftpd-hpa pxelinux syslinux vsftpd -y
+nano /etc/default/isc-dhcp-server
+INTERFACESv4="ens33"
+nano /etc/dhcp/dhcpd.conf
+authoritative;
+option domain-name "test.my";
+default-lease-time 600;
+max-lease-time 7200;
+log-facility local7;
+option domain-name-servers 192.168.1.1;
+allow booting;
+allow bootp;
+option fqdn.no-client-update on;
+option fqdn.rcode2 255;
+option pxegrub code 150 = text ;
+next-server 192.168.1.90;
+option architecture code 93 = unsigned integer 16 ;
+if option architecture = 00:07 {
+filename "bootx64.efi";
+} elsif option architecture = 00:09 {
+filename "bootx64.efi";
+} else {
+filename "pxelinux.0";
+}
+subnet 192.168.1.0 netmask 255.255.255.0 {
+range 192.168.1.150 192.168.1.190;
+option domain-name "test.my";
+option broadcast-address 192.168.1.255;
+option routers 192.168.1.1;
+option subnet-mask 255.255.255.0;
+}
+service isc-dhcp-server restart
+service isc-dhcp-server status
+nano /etc/vsftpd.conf
+listen=NO
+listen_ipv6=YES
+anonymous_enable=YES
+local_enable=YES
+dirmessage_enable=YES
+use_localtime=YES
+xferlog_enable=YES
+rsa_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem
+rsa_private_key_file=/etc/ssl/private/ssl-cert-snakeoil.key
+ssl_enable=NO
+usermod -d /srv ftp
+service vsftpd restart
+service vsftpd status
+mkdir -p /srv/repo/smolensk/
+mount /data/smolensk-1.6-20.06.2018_15.56.iso /srv/repo/smolensk/
+ls /srv/repo/smolensk/
+mkdir -p /srv/tftp/smolensk/
+cp /srv/repo/smolensk/netinst/linux /srv/tftp/smolensk/
+cp /srv/repo/smolensk/netinst/initrd.gz /srv/tftp/smolensk/
+cp /usr/lib/PXELINUX/pxelinux.0 /srv/tftp/
+cp /usr/lib/syslinux/modules/bios/{chain.c32,ldlinux.c32,libcom32.c32,libutil.c32,menu.c32} /srv/tftp/
+mkdir -p /srv/tftp/pxelinux.cfg
+nano /srv/tftp/pxelinux.cfg/default
+ui menu.c32
+PROMPT 0
+MENU TITLE PXE Boot menu
+TIMEOUT 50
+DEFAULT netinstall
+LABEL local
+MENU LABEL Boot from local drive
+kernel chain.c32
+append sda
+# Astra Linux SE Smolensk
+LABEL netinstall
+MENU LABEL Start Astra Linux Smolensk net install
+kernel smolensk/linux
+append initrd=smolensk/initrd.gz modprobe.blacklist=evbug auto=true priority=critical debian-installer/locale=en_US console-keymaps-at/keymap=ru hostname=dhcp domain=test.my astra-license/license=true url=tftp://192.168.1.90/smolensk/preseed.cfg interface=auto netcfg/dhcp_timeout=60
+TIMEOUT 1
+---------------------------------------------------------------------------------------
+tar xvf /data/netinst.tar.gz -C /srv/tftp
+nano /srv/tftp/debian-installer/amd64/grub/grub.cfg
+if loadfont $prefix/font.pf2 ; then
+set gfxmode=1024x768
+set gfxpayload=keep
+insmod efi_gop
+insmod efi_uga
+insmod video_bochs
+insmod video_cirrus
+insmod gfxterm
+insmod png
+terminal_output gfxterm
+fi
+
+if background_image /isolinux/splash.png; then
+set color_normal=light-gray/black
+set color_highlight=white/black
+else
+set menu_color_normal=cyan/blue
+set menu_color_highlight=white/blue
+fi
+
+menuentry "Boot default EFI bootloader" {
+set background_color=black
+regexp -s root '\((.+)\)' "$cmdpath"
+chainloader /EFI/Boot/Bootx64.efi
+}
+
+# Установка Astra Linux SE Смоленск
+menuentry 'Install Astra Linux SE Smolensk' {
+set background_color=black
+linux /smolensk/linux modprobe.blacklist=evbug debian-installer/allow_unauthenticated=true auto=true priority=critical debian-installer/locale=en_US console-keymaps-at/keymap=ru hostname=test2 domain=test.my astra-license/license=true url=tftp://192.168.1.90/smolensk/preseed.cfg interface=auto netcfg/dhcp_timeout=60
+initrd /smolensk/initrd.gz
+}
+----------------------------------------------------------------------------------------------
+nano /srv/tftp/smolensk/preseed.cfg
+# Сетевой репозиторий для установки
+d-i mirror/protocol string ftp
+d-i mirror/ftp/hostname string 192.168.1.90
+d-i mirror/ftp/directory string /repo/smolensk
+# Настройки языка
+d-i mirror/country string manual
+d-i debian-installer/locale string ru_RU
+d-i debian-installer/locale select ru_RU.UTF-8
+d-i debian-installer/language string ru
+d-i debian-installer/country string RU
+d-i debian-installer/keymap string ru
+# Настройки клавиатуры
+d-i console-tools/archs select at
+d-i console-keymaps-at/keymap select ru
+d-i console-setup/toggle string Ctrl+Shift
+d-i console-setup/layoutcode string ru
+d-i keyboard-configuration/toggle select Ctrl+Shift
+d-i keyboard-configuration/layoutcode string ru
+d-i keyboard-configuration/xkb-keymap select ru
+d-i languagechooser/language-name-fb select Russian
+d-i countrychooser/country-name select Russia
+# Настройки сетевого интерфеска
+d-i netcfg/choose_interface select auto
+# Выбор компонент репозитория
+d-i apt-setup/non-free boolean true
+d-i apt-setup/contrib boolean true
+d-i apt-setup/services-select none
+# Настройка часов и синхронизации времени
+d-i clock-setup/utc boolean true
+d-i time/zone string Europe/Moscow
+d-i clock-setup/ntp boolean false
+# Разметка диска
+d-i partman-auto/method string regular
+d-i partman-auto/purge_lvm_from_device boolean true
+d-i partman-lvm/confirm boolean true
+# Для режима legacy bios:
+d-i partman-auto/expert_recipe string myroot :: \
+     512 16384 512 ext2 \
+         $primary{ } $bootable{ } \
+         method{ format } format{ } use_filesystem{ } filesystem{ ext2 } mountpoint{ /boot } .\
+     8192 16384 16384 ext4 \
+         method{ format } format{ } use_filesystem{ } filesystem{ ext4 } mountpoint{ /     } .\
+     2048 16384 2048 ext4 \
+         method{ format } format{ } use_filesystem{ } filesystem{ ext4 } mountpoint{ /tmp  } options/noexec{ noexec } options/nodev{ nodev } options/nosuid{ nosuid } .\
+     500 8192 -1 ext4 \
+         method{ format } format{ } use_filesystem{ } filesystem{ ext4 } mountpoint{ /home } .
+d-i partman-auto/choose_recipe select myroot
+#d-i partman-auto/choose_recipe select atomic
+# Для режима UEFI:
+# d-i   partman-auto/choose_recipe  select  /lib/partman/recipes-amd64-efi/30atomic
+# Этот параметр заставляет partman выполнить разметку автоматически без подтверждения.
+d-i partman/confirm_write_new_label     boolean true
+d-i partman/choose_partition select finish
+d-i partman/confirm boolean true
+d-i partman-auto-crypto/erase_disks     boolean true
+d-i partman-basicfilesystems/no_swap    boolean false
+d-i partman-target/mount_failed         boolean true
+d-i partman-partitioning/unknown_label  boolean true
+d-i partman-auto/purge_lvm_from_device  string  true
+d-i partman-lvm/vgdelete_confirm        boolean true
+d-i partman/confirm_write_new_label     string  true
+d-i partman-lvm/confirm boolean true
+d-i partman/confirm_nooverwrite boolean true
+ 
+d-i base-installer/kernel/image string linux-image-generic
+ d-i passwd/make-user boolean true
+# Учетная запись и пароль пользователя
+d-i passwd/user-fullname string astra
+d-i passwd/username string astra
+d-i passwd/user-password password 12345678
+d-i passwd/user-password-again password 12345678
+d-i passwd/root-password password 12qw34er
+d-i passwd/root-password-again password 12qw34er
+d-i debian-installer/allow_unauthenticated string true
+# Выбор ПО для установки
+tasksel tasksel/first multiselect Base packages, Fly desktop, SSH server
+tasksel tasksel/astra-feat-setup multiselect
+# Выбор уровня защищенности ОС
+#d-i astra-additional-setup/os-check select Maximum security level Smolensk
+d-i astra-additional-setup/os-check select Base security level Orel
+d-i astra-additional-setup/additional-settings-orel multiselect Disable ptrace capability
+# Выбор параметров ОС
+d-i astra-additional-setup/additional-settings-smolensk multiselect Enable Mandatory Integrity Control, Enable Mandatory Access Control, Disable ptrace capability
+ 
+tripwire tripwire/use-localkey boolean false
+tripwire tripwire/use-sitekey boolean false
+tripwire tripwire/installed note ok
+portsentry portsentry/warn_no_block note ok
+astra-license astra-license/license boolean true
+krb5-config krb5-config/kerberos_servers string
+libnss-ldapd libnss-ldapd/ldap-base string
+libnss-ldapd libnss-ldapd/ldap-uris string
+libnss-ldapd libnss-ldapd/nsswitch multiselect services
+ald-client ald-client/make_config boolean false
+ald-client ald-client/manual_configure false
+astra-feat-setup astra-feat-setup/feat multiselect kiosk mode false
+astra-feat-setup astra-feat-setup/feat multiselect Служба ALD false
+d-i console-cyrillic/switch select "Клавиша Menu"
+d-i console-cyrillic/toggle select Control+Shift
+d-i samba-common/dhcp boolean false
+d-i samba-common/workgroup string testgroup1
+ 
+popularity-contest popularity-contest/participate boolean false
+ 
+d-i grub-installer/only_debian boolean true
+ 
+d-i grub-installer/with_other_os boolean true
+# Пароль загрузчика grub
+d-i grub-installer/password password 12345678
+d-i grub-installer/password-again password 12345678
+grub-installer grub-installer/password-mismatch error
+# Не показывать последнее сообщение о том, что установка завершена.
+d-i finish-install/reboot_in_progress note
+d-i finish-install/exit/poweroff boolean true
+ 
+d-i preseed/late_command string in-target apt purge -y ntp ; \
+                                in-target systemctl enable systemd-timesyncd.service ; \
+                                in-target rm -f /etc/NetworkManager/system-connections/*;
+dhcp-lease-list
+
+
