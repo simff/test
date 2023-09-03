@@ -1,3 +1,4 @@
+fdisk /dev/sdb
 mkfs -t xfs /dev/sdb1
 df -T
 blkid /dev/sdb1
@@ -72,11 +73,10 @@ append sda
 LABEL netinstall
 MENU LABEL Start Astra Linux Smolensk net install
 kernel smolensk/linux
-append initrd=smolensk/initrd.gz modprobe.blacklist=evbug auto=true priority=critical debian-installer/locale=en_US console-keymaps-at/keymap=ru hostname=dhcp domain=test.my astra-license/license=true url=tftp://192.168.1.90/smolensk/preseed.cfg interface=auto netcfg/dhcp_timeout=60
+append initrd=smolensk/initrd.gz modprobe.blacklist=evbug auto=true priority=critical debian-installer/locale=en_US console-keymaps-at/keymap=ru hostname=astra domain=test.my astra-license/license=true url=tftp://192.168.1.90/smolensk/preseed.cfg interface=auto netcfg/dhcp_timeout=60
 TIMEOUT 1
 ---------------------------------------------------------------------------------------
 cd /data
-wget https://github.com/simff/test/blob/master/netinst.tar.gz
 tar xvf /data/netinst.tar.gz -C /srv/tftp
 nano /srv/tftp/debian-installer/amd64/grub/grub.cfg
 if loadfont $prefix/font.pf2 ; then
@@ -176,16 +176,13 @@ d-i partman-lvm/vgdelete_confirm        boolean true
 d-i partman/confirm_write_new_label     string  true
 d-i partman-lvm/confirm boolean true
 d-i partman/confirm_nooverwrite boolean true
- 
-d-i base-installer/kernel/image string linux-image-generic
+ d-i base-installer/kernel/image string linux-image-generic
  d-i passwd/make-user boolean true
 # Учетная запись и пароль пользователя
 d-i passwd/user-fullname string astra
 d-i passwd/username string astra
 d-i passwd/user-password password 12345678
 d-i passwd/user-password-again password 12345678
-d-i passwd/root-password password 12qw34er
-d-i passwd/root-password-again password 12qw34er
 d-i debian-installer/allow_unauthenticated string true
 # Выбор ПО для установки
 tasksel tasksel/first multiselect Base packages, Fly desktop, SSH server
@@ -196,8 +193,7 @@ d-i astra-additional-setup/os-check select Base security level Orel
 d-i astra-additional-setup/additional-settings-orel multiselect Disable ptrace capability
 # Выбор параметров ОС
 d-i astra-additional-setup/additional-settings-smolensk multiselect Enable Mandatory Integrity Control, Enable Mandatory Access Control, Disable ptrace capability
- 
-tripwire tripwire/use-localkey boolean false
+ tripwire tripwire/use-localkey boolean false
 tripwire tripwire/use-sitekey boolean false
 tripwire tripwire/installed note ok
 portsentry portsentry/warn_no_block note ok
@@ -214,12 +210,9 @@ d-i console-cyrillic/switch select "Клавиша Menu"
 d-i console-cyrillic/toggle select Control+Shift
 d-i samba-common/dhcp boolean false
 d-i samba-common/workgroup string testgroup1
- 
-popularity-contest popularity-contest/participate boolean false
- 
-d-i grub-installer/only_debian boolean true
- 
-d-i grub-installer/with_other_os boolean true
+ popularity-contest popularity-contest/participate boolean false
+ d-i grub-installer/only_debian boolean true
+ d-i grub-installer/with_other_os boolean true
 # Пароль загрузчика grub
 d-i grub-installer/password password 12345678
 d-i grub-installer/password-again password 12345678
