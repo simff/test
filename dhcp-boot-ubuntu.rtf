@@ -4,7 +4,7 @@
 \pard\sa200\sl276\slmult1\b\f0\fs28\lang9 nano /etc/apt/apt.conf.d/20auto-upgrades\par
 \b0 APT::Periodic::Update-Package-Lists "0";\par
 APT::Periodic::Unattended-Upgrade "0";\b\par
-fdisk /dev/sdb\par
+echo -ne "n\\n""p\\n""1\\n""\\n""\\n""w\\n" |fdisk /dev/sdb\par
 mkfs -t xfs /dev/sdb1\par
 mkdir /data\par
 blkid /dev/sdb1\par
@@ -70,13 +70,15 @@ LABEL install\par
   APPEND root=/dev/ram0 ramdisk_size=1500000 ip=dhcp url={{\field{\*\fldinst{HYPERLINK http://192.168.1.90/ubuntu-22.04.1-live-server-amd64.iso }}{\fldrslt{http://192.168.1.90/ubuntu-22.04.1-live-server-amd64.iso\ul0\cf0}}}}\f0\fs28\par
 \b nano /lib/systemd/system/dnsmasq.service\par
 \b0 Type=idle\par
+\b cat /var/lib/misc/dnsmasq.leases\b0\par
 \b -----------------------------------------------------------------------------------\par
-apt-add-repository ppa:cubic-wizard/release\par
+\fs44 Cubic\fs28\par
+echo -ne "\\n" |apt-add-repository ppa:cubic-wizard/release\par
+sleep 10\par
 apt update && sudo apt install cubic -y\par
 sudo chmod 0777 /data\par
 mkdir /data/pr1\par
-\fs44 cubic\par
-\fs28 passwd\par
+passwd\par
 apt update\par
 apt list --installed\par
 apt install openssh-server -y\par
@@ -175,9 +177,79 @@ ansible-galaxy collection install community.vmware --force\par
       delegate_to: localhost\par
       register: Linuxmint\par
 \b ansible-playbook create-vm.yaml\par
+--------------------------------------------------------------------------------------\par
+\fs44 netboot.xyz\par
+\fs28 mkdir /data\par
+cd /data\fs44\par
+\fs28 wget {{\field{\*\fldinst{HYPERLINK https://boot.netboot.xyz/ipxe/netboot.xyz.iso }}{\fldrslt{https://boot.netboot.xyz/ipxe/netboot.xyz.iso\ul0\cf0}}}}\f0\fs28\par
+apt update\par
+apt install dnsmasq apache2 syslinux-common pxelinux -y\par
+rm /var/www/html/index.html \par
+mkdir tftp\par
+mount netboot.xyz.iso ./tftp\par
+cp -drv ./tftp /srv \par
+rm /etc/dnsmasq.conf\par
+nano /etc/dnsmasq.conf\par
+\b0 interface=ens33,lo\par
+bind-interfaces\par
+domain=test.my\par
+dhcp-range=ens33,192.168.1.150,192.168.1.190,255.255.255.0,1h\par
+dhcp-option=3,192.168.1.1 # gateway\par
+dhcp-option=6,192.168.1.1 # dns server\par
+dhcp-option=28,192.168.1.255 # broadcast\par
+# dhcp-option=42,0.0.0.0 # NTP\par
+# dhcp-host=mac-address,host-name,192.168.1.155,infinite\par
+dhcp-boot=pxelinux.0,pxeserver,192.168.1.90 # pxe-server\par
+enable-tftp\par
+tftp-root=/srv/tftp\b\par
+nano /lib/systemd/system/dnsmasq.service\par
+\b0 Type=idle\par
+\b cp /usr/lib/PXELINUX/pxelinux.0 /srv/tftp/\par
+mkdir /srv/tftp/pxelinux.cfg\par
+cd /srv/tftp\par
+cat isolinux.cfg > ./pxelinux.cfg/default\par
+systemctl restart dnsmasq.service\par
+systemctl enable dnsmasq.service\par
+systemctl status dnsmasq.service\par
+---------------------------------------------------------------------------------------\par
+\fs44 Ubuntu 20 - Desktop\par
+\fs28 apt update\par
+apt install dnsmasq apache2 syslinux-common pxelinux -y\par
+rm /var/www/html/index.html \par
+mkdir /data/u20-netboot\par
+cd /data/u20-netboot\par
+lftp -c "open {{\field{\*\fldinst{HYPERLINK http://archive.ubuntu.com/ubuntu/dists/focal-updates/main/installer-amd64/current/legacy-images/netboot/ubuntu-installer/ }}{\fldrslt{http://archive.ubuntu.com/ubuntu/dists/focal-updates/main/installer-amd64/current/legacy-images/netboot/ubuntu-installer/\ul0\cf0}}}}\f0\fs28 ; mirror amd64/"\par
+rm /etc/dnsmasq.conf\par
+nano /etc/dnsmasq.conf\par
+\b0 interface=ens33,lo\par
+bind-interfaces\par
+domain=test.my\par
+dhcp-range=ens33,192.168.1.150,192.168.1.190,255.255.255.0,1h\par
+dhcp-option=3,192.168.1.1 # gateway\par
+dhcp-option=6,192.168.1.1 # dns server\par
+dhcp-option=28,192.168.1.255 # broadcast\par
+# dhcp-option=42,0.0.0.0 # NTP\par
+# dhcp-host=mac-address,host-name,192.168.1.155,infinite\par
+dhcp-boot=pxelinux.0,pxeserver,192.168.1.90 # pxe-server\par
+enable-tftp\par
+tftp-root=/srv/tftp\b\par
+mkdir /srv/tftp\par
+systemctl restart dnsmasq.service\par
+systemctl enable dnsmasq.service\par
+systemctl status dnsmasq.service\par
+cp -rv /data/u20-netboot/amd64/\{initrd.gz,linux,pxelinux.0 /srv/tftp/\par
+cp /usr/lib/syslinux/modules/bios/ldlinux.c32 /srv/tftp/\par
+mkdir /srv/tftp/pxelinux.cfg\par
+nano /srv/tftp/pxelinux.cfg/default\par
+\b0 DEFAULT install\par
+LABEL install\par
+  KERNEL linux\par
+  INITRD initrd.gz\par
+ \b nano /lib/systemd/system/dnsmasq.service\par
+\b0 Type=idle\par
+\b cat /var/lib/misc/dnsmasq.leases\b0\par
+\b ----------------------------------------------------------------------------------------\par
 \par
-\b0\par
-\b\par
 \par
 \b0\par
 \par
