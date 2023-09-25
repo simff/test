@@ -214,8 +214,9 @@ systemctl status dnsmasq.service\par
 ---------------------------------------------------------------------------------------\par
 \fs44 Ubuntu 20 - Desktop\par
 \fs28 apt update\par
-apt install dnsmasq apache2 syslinux-common pxelinux -y\par
+apt install dnsmasq apache2 syslinux-common pxelinux lftp -y\par
 rm /var/www/html/index.html \par
+mkdir /data\par
 mkdir /data/u20-netboot\par
 cd /data/u20-netboot\par
 lftp -c "open {{\field{\*\fldinst{HYPERLINK http://archive.ubuntu.com/ubuntu/dists/focal-updates/main/installer-amd64/current/legacy-images/netboot/ubuntu-installer/ }}{\fldrslt{http://archive.ubuntu.com/ubuntu/dists/focal-updates/main/installer-amd64/current/legacy-images/netboot/ubuntu-installer/\ul0\cf0}}}}\f0\fs28 ; mirror amd64/"\par
@@ -224,6 +225,7 @@ nano /etc/dnsmasq.conf\par
 \b0 interface=ens33,lo\par
 bind-interfaces\par
 domain=test.my\par
+address=/dhcp/192.168.1.90\par
 dhcp-range=ens33,192.168.1.150,192.168.1.190,255.255.255.0,1h\par
 dhcp-option=3,192.168.1.1 # gateway\par
 dhcp-option=6,192.168.1.1 # dns server\par
@@ -232,23 +234,47 @@ dhcp-option=28,192.168.1.255 # broadcast\par
 # dhcp-host=mac-address,host-name,192.168.1.155,infinite\par
 dhcp-boot=pxelinux.0,pxeserver,192.168.1.90 # pxe-server\par
 enable-tftp\par
-tftp-root=/srv/tftp\b\par
-mkdir /srv/tftp\par
+tftp-root=/srv/tftp\par
+\b nano /lib/systemd/system/dnsmasq.service\par
+\b0 Type=idle\par
+\b mkdir /srv/tftp\par
 systemctl restart dnsmasq.service\par
 systemctl enable dnsmasq.service\par
 systemctl status dnsmasq.service\par
-cp -rv /data/u20-netboot/amd64/\{initrd.gz,linux,pxelinux.0 /srv/tftp/\par
+cp -rv /data/u20-netboot/amd64/\{initrd.gz,linux,pxelinux.0\} /srv/tftp/\par
 cp /usr/lib/syslinux/modules/bios/ldlinux.c32 /srv/tftp/\par
 mkdir /srv/tftp/pxelinux.cfg\par
 nano /srv/tftp/pxelinux.cfg/default\par
 \b0 DEFAULT install\par
 LABEL install\par
   KERNEL linux\par
-  INITRD initrd.gz\par
- \b nano /lib/systemd/system/dnsmasq.service\par
-\b0 Type=idle\par
-\b cat /var/lib/misc/dnsmasq.leases\b0\par
-\b ----------------------------------------------------------------------------------------\par
+  APPEND initrd=initrd.gz auto=true priority=critical url={{\field{\*\fldinst{HYPERLINK http://192.168.1.90/preseed.cfg }}{\fldrslt{http://192.168.1.90/preseed.cfg\ul0\cf0}}}}\f0\fs28\par
+\b nano /var/www/html/preseed.cfg\par
+\b0 # Localization\par
+d-i debian-installer/language string ru\par
+d-i debian-installer/country string RU\par
+# Keyboard\par
+d-i keyboard-configuration/layoutcode string ru\par
+# Create vagrant user account.\par
+d-i passwd/user-fullname string sim\par
+d-i passwd/username string sim\par
+d-i passwd/user-password password Passw0rd\par
+d-i passwd/user-password-again password Passw0rd\par
+# Disk\par
+d-i partman-auto/method string lvm\par
+d-i partman-lvm/confirm_nooverwrite boolean true\par
+d-i partman/choose_partition select finish\par
+d-i partman/confirm_nooverwrite boolean true\par
+# Reboot\par
+d-i finish-install/reboot_in_progress note\par
+# --------------------------------------------\par
+d-i pkgsel/include string openssh-server\par
+d-i preseed/late_command string \\\par
+  in-target mkdir -p /root/.ssh; \\\par
+  in-target /bin/sh -c "echo '' > /root/.ssh/authorized_keys"\b\par
+cat /var/lib/misc/dnsmasq.leases\b0\par
+\b ----------------------------------------------------------------------------\par
+\par
 \par
 \par
 \b0\par
