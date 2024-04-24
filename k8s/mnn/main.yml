@@ -5,29 +5,39 @@
 - name: Add Hosts
   import_playbook: add-hosts.yml
 
-#- name: Swap-off
-#  import_playbook: swap-off.yml
+- name: Swap-off
+  import_playbook: swap-off.yml
 
-- name: Setup Kubernetes
-  import_playbook: kube-mnn.yml
+- name: Install Packages
+  import_playbook: install-packages.yml
 
-#- name: Setup registry-connect
-#  import_playbook: registry-connect.yml
+- name: Hosts Configure
+  import_playbook: configure.yml
 
-#- name: Setup docker-pull
-#  import_playbook: docker-pull.yml
+# ------------- Install Container runtime ----------------
+- name: Install Containerd
+  import_playbook: containerd.yml
 
-#- name: Setup test
-#  import_playbook: test.yml
+#- name: Install CRI-O
+#  import_playbook: cri-o.yml
+# --------------------------------------------------------
 
-#- name: Setup Kubernetes Dashboard
-#  import_playbook: kube-dashboard.yml
+- name: Install Kubernetes
+  vars:
+    version: 1.29
+  import_playbook: kube-install.yml
 
-- name: Setup Helm
-  import_playbook: helm.yml
+- name: Init Kubernetes
+  vars:
+    init: flannel  # calico flannel
+  import_playbook: kube-init.yml
 
-- name: Setup nginx-ingress-controller with prometheus for grafana
-  import_playbook: nginx-ingress-controller.yml
+# ---------------------- Pods Network --------------------
+- name: Apply Flannel
+  import_playbook: flannel.yml
 
-#- name: Setup NFS-Server
-#  import_playbook: nfs-server-k8s.yml
+#- name: Apply Calico
+#  import_playbook: calico.yml
+# --------------------------------------------------------
+- name: Add Worknodes
+  import_playbook: add-worknodes.yml

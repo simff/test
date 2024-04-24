@@ -1,79 +1,12 @@
 ---
--
-  become: true
-  hosts: masters,worknodes
-  become_method: sudo
-  become_user: root
+- hosts: localhost
+  vars:
+    init: flannel
   tasks:
-  - name: Update APT
-    apt:
-      update_cache: yes
+  - name: Install Flannel
+    msg: "Flannel"
+    when: init == "flannel"
 
-  - name: Install packeges
-    apt:
-      name:
-        - apt-transport-https
-        - ca-certificates
-        - curl
-        - wget
-        - git
-        - htop
-        - net-tools
-
-  - name: Swap-Off
-    shell: swapoff -a
-
-  - name: Swap-Off
-    shell: systemctl mask swap.target
-
-  - name: Changes /etc/fstab
-    ansible.builtin.lineinfile:
-      path: /etc/fstab
-      state: absent
-      regexp: 'swap'
-
-  - name: Changes /etc/modules-load.d/modules.conf
-    ansible.builtin.lineinfile:
-      path: /etc/modules-load.d/modules.conf
-      line: br_netfilter \noverlay
-      create: yes
-
-  - name: Creating /etc/sysctl.d/kube.conf
-    ansible.builtin.lineinfile:
-      path: /etc/sysctl.d/kube.conf
-      line: net.bridge.bridge-nf-call-iptables = 1
-      create: yes
-
-  - name: Install Docker
-    apt:
-      name:
-        - docker
-        - docker.io
-
-  - name: Creating /etc/docker/daemon.json
-    copy:
-      dest: "/etc/docker/daemon.json"
-      content: |
-        {
-        "exec-opts": ["native.cgroupdriver=systemd"],
-        "log-driver": "json-file",
-        "log-opts": {
-        "max-size": "100m"
-        },
-        "storage-driver": "overlay2",
-        "storage-opts": [
-        "overlay2.override_kernel_check=true"
-        ]
-        }
-
-  - name: Restart Docker
-    service:
-      name: "docker"
-      state: "restarted"
-      enabled: "yes"
-
-  - name: Install-Kubernetes 1.19.16-00
-    shell: curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add - && echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list && sudo apt-get update -q && sudo apt-get install -qy kubelet=1.19.16-00 kubectl=1.19.16-00 kubeadm=1.19.16-00
-
-  - name: Disabled update kubelet kubeadm kubectl
-    shell: apt-mark hold kubelet kubeadm kubectl
+  - name: Install Calico
+    msg: "Calico"
+    when: init == "calico"

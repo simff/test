@@ -1,0 +1,27 @@
+---
+-
+  become: true
+  hosts: masters
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Init master for Calico
+    shell: kubeadm init --control-plane-endpoint=master
+    when: init == "calico"
+
+  - name: Init master for Flannel
+    shell: kubeadm init --pod-network-cidr=10.244.0.0/16
+    when: init == "flannel"
+
+  - name: The pause for 1 minutes to build app cache
+    pause:
+      minutes: 1
+
+  - name: Export KUBECONFIG
+    shell: export KUBECONFIG=/etc/kubernetes/admin.conf
+
+  - name: Export KUBECONFIG config
+    ansible.builtin.lineinfile:
+      path: /etc/environment
+      line: export KUBECONFIG=/etc/kubernetes/admin.conf
+      create: yes

@@ -1,0 +1,28 @@
+---
+-
+  become: true
+  hosts: masters,worknodes
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: CRI-O 1
+    shell: curl -fsSL https://pkgs.k8s.io/addons:/cri-o:/prerelease:/main/deb/Release.key|sudo gpg --dearmor -o /etc/apt/keyrings/cri-o-apt-keyring.gpg
+
+  - name: CRI-O 2
+    shell: echo "deb [signed-by=/etc/apt/keyrings/cri-o-apt-keyring.gpg] https://pkgs.k8s.io/addons:/cri-o:/prerelease:/main/deb/ /"|sudo tee /etc/apt/sources.list.d/cri-o.list
+
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install packages
+    apt:
+      name:
+        - cri-o
+
+  - name: Restart CRI-O
+    service:
+      name: "cri-o"
+      state: "restarted"
+      daemon_reload: true
+      enabled: "yes"

@@ -1,7 +1,7 @@
 ---
 -
   become: true
-  hosts: master01
+  hosts: master
   become_method: sudo
   become_user: root
   tasks:
@@ -16,4 +16,3 @@
     shell: kubectl patch svc ingress-nginx-controller -n ingress-nginx -p '{"spec":{"externalIPs":["{{ hostvars['master01'].ansible_host }}"]}}'
 
 # Dashboard Grafana 9614
-

@@ -1,0 +1,30 @@
+---
+-
+  become: true
+  hosts: masters,worknodes
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Install-Kubernetes 1
+    shell: curl -fsSL https://pkgs.k8s.io/core:/stable:/v{{ version }}/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+  - name: Install-Kubernetes 2
+    shell: echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v{{ version }}/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install kubelet kubeadm kubectl
+    apt:
+      name:
+        - kubelet
+        - kubeadm
+        - kubectl
+
+  - name: Install-Kubernetes 3
+    shell: apt-mark hold kubelet kubeadm kubectl
+
+  - name: The pause for 1 minutes to build app cache
+    pause:
+      minutes: 1

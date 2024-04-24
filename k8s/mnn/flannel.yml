@@ -1,0 +1,13 @@
+---
+-
+  become: true
+  hosts: masters
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Apply flannel
+    shell: kubectl apply -f https://github.com/coreos/flannel/raw/master/Documentation/kube-flannel.yml
+
+  - name: Waiting for 1 minutes until the pods start
+    pause:
+      minutes: 1

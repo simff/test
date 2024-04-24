@@ -1,0 +1,23 @@
+---
+-
+  become: true
+  hosts: all
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install packages
+    apt:
+      name:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - wget
+        - gpg
+        - git
+        - gnupg2
+        - software-properties-common
+        

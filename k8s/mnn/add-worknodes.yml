@@ -1,0 +1,27 @@
+---
+-
+  become: true
+  hosts: masters
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: get join command
+    shell: kubeadm token create --print-join-command
+    register: join_command_raw
+
+  - name: set join command
+    set_fact:
+      join_command: "{{ join_command_raw.stdout_lines[0] }}"
+
+-
+  become: true
+  hosts: worknodes
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: join cluster
+    shell: "{{ hostvars['master'].join_command }}"  # set primary master
+
+  - name: Waiting for 2 minutes until the pods start
+    pause:
+      minutes: 2
