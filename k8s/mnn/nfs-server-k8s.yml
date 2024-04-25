@@ -5,6 +5,15 @@
   become_method: sudo
   become_user: root
   tasks:
+  - name: NFS Export config
+    ansible.builtin.lineinfile:
+      path: /etc/modules-load.d/modules.conf
+      line: nfs
+      create: yes
+
+  - name: Apply modules
+    shell: modprobe nfs
+
   - name: Update APT
     apt:
       update_cache: yes
@@ -13,6 +22,14 @@
     apt:
       name:
         - nfs-kernel-server
+        
+  - name: Restart nfs-server
+    service:
+      name: "nfs-server"
+      daemon_reload: true
+      state: "restarted"
+      enabled: "yes"
+
 -
   become: true
   hosts: all
@@ -27,3 +44,26 @@
     apt:
       name:
         - nfs-common
+
+-
+  become: true
+  hosts: master
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Create share directory
+    ansible.builtin.file:
+      path: /opt/data
+      state: directory
+      mode: '0777'
+
+  - name: NFS Export config
+    ansible.builtin.lineinfile:
+      path: /etc/exports
+      line: /opt/data 192.168.1.0/24(rw,sync,no_subtree_check)
+      create: yes
+
+  - name: Apply exports
+    shell: exportfs -a
+
+# showmount --exports master

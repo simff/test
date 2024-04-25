@@ -13,6 +13,7 @@
     shell: kubectl apply --kustomize github.com/kubernetes/ingress-nginx/deploy/prometheus/
 
   - name: Apply External IP
-    shell: kubectl patch svc ingress-nginx-controller -n ingress-nginx -p '{"spec":{"externalIPs":["{{ hostvars['master01'].ansible_host }}"]}}'
+    shell: kubectl patch svc ingress-nginx-controller -n ingress-nginx -p '{"spec":{"externalIPs":["{{ hostvars['master'].ansible_host }}"]}}'
 
 # Dashboard Grafana 9614
+# kubectl create ingress test --class=nginx --rule test.test.my/=my-web-service:80
