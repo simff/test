@@ -50,3 +50,6 @@
 
 - name: Install NFS Server for master
   import_playbook: nfs-server-k8s.yml
+
+- name: Apply Grafana Monitor
+  import_playbook: grafana.yml

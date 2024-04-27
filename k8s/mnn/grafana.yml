@@ -1,0 +1,17 @@
+---
+-
+  become: true
+  hosts: master
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Create share directory
+    ansible.builtin.file:
+      path: /opt/data/grafana
+      state: directory
+      mode: '0777'
+
+  - name: Apply Grafana
+    shell: kubectl apply -f https://raw.githubusercontent.com/simff/test/master/k8s/mnn/ingress-grafana-monitor.yaml
+
+# 9614 Dashboard
