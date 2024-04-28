@@ -42,14 +42,14 @@
 - name: Add Worknodes
   import_playbook: add-worknodes.yml
 # --------------------------------------------------------
-- name: Install Helm
-  import_playbook: helm.yml
+#- name: Install Helm
+#  import_playbook: helm.yml
 
-- name: Install Nginx ingress controller
-  import_playbook: nginx-ingress-controller.yml
+#- name: Install Nginx ingress controller
+#  import_playbook: nginx-ingress-controller.yml
 
-- name: Install NFS Server for master
-  import_playbook: nfs-server-k8s.yml
+#- name: Install NFS Server for master
+#  import_playbook: nfs-server-k8s.yml
 
-- name: Apply Grafana Monitor
-  import_playbook: grafana.yml
+#- name: Apply Grafana Monitor
+#  import_playbook: grafana.yml

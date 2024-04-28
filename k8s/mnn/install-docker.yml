@@ -1,0 +1,13 @@
+# Install Docker after conteinerd
+---
+-
+  become: true
+  hosts: masters
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Install packages
+    apt:
+      name:
+        - docker-ce 
+        - docker-ce-cli
