@@ -24,4 +24,4 @@
 
   - name: Waiting for 2 minutes until the pods start
     pause:
-      minutes: 2
+      minutes: 4
