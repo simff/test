@@ -1,0 +1,44 @@
+---
+-
+  become: true
+  hosts: masters
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Install curl
+    apt:
+      name:
+        - curl
+
+  - name: docker 1
+    shell: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/trusted.gpg.d/docker-archive-keyring.gpg
+
+  - name: docker 2
+    shell: echo -ne '\n' | add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install packages
+    apt:
+      name:
+        - containerd.io
+        - docker-ce
+        - docker-ce-cli
+        - docker-compose-plugin
+
+  - name: Edit docker registry
+    copy:
+      dest: "/etc/docker/daemon.json"
+      content: |
+        {
+          "insecure-registries" : [ "172.30.0.0/16" ]
+        }
+
+  - name: Restart docker
+    service:
+      name: "docker"
+      daemon_reload: true
+      state: "restarted"
+      enabled: "yes"

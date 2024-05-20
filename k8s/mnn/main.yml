@@ -1,55 +1,55 @@
 ---
-- name: Disable autoupdate
-  import_playbook: disable-autoupdate.yml
+#- name: Disable autoupdate
+#  import_playbook: disable-autoupdate.yml
 
-- name: Add Hosts
-  import_playbook: add-hosts.yml
+#- name: Add Hosts
+#  import_playbook: add-hosts.yml
 
-- name: Swap-off
-  import_playbook: swap-off.yml
+#- name: Swap-off
+#  import_playbook: swap-off.yml
 
-- name: Install Packages
-  import_playbook: install-packages.yml
+#- name: Install Packages
+#  import_playbook: install-packages.yml
 
-- name: Hosts Configure
-  import_playbook: configure.yml
+#- name: Hosts Configure
+#  import_playbook: configure.yml
 
 # ------------- Install Container runtime ----------------
-- name: Install Containerd
-  import_playbook: containerd.yml
+#- name: Install Containerd
+#  import_playbook: containerd.yml
 
 #- name: Install CRI-O
 #  import_playbook: cri-o.yml
 # --------------------------------------------------------
 
-- name: Install Kubernetes
-  vars:
-    version: 1.29
-  import_playbook: kube-install.yml
+#- name: Install Kubernetes
+#  vars:
+#    version: 1.29
+#  import_playbook: kube-install.yml
 
-- name: Init Kubernetes
-  vars:
-    init: flannel  # calico flannel
-  import_playbook: kube-init.yml
+#- name: Init Kubernetes
+#  vars:
+#    init: flannel  # calico flannel
+#  import_playbook: kube-init.yml
 
 # ---------------------- Pods Network --------------------
-- name: Apply Flannel
-  import_playbook: flannel.yml
+#- name: Apply Flannel
+#  import_playbook: flannel.yml
 
 #- name: Apply Calico
 #  import_playbook: calico.yml
 # --------------------------------------------------------
-- name: Add Worknodes
-  import_playbook: add-worknodes.yml
+#- name: Add Worknodes
+#  import_playbook: add-worknodes.yml
 # --------------------------------------------------------
 #- name: Install Helm
 #  import_playbook: helm.yml
 
-#- name: Install Nginx ingress controller
-#  import_playbook: nginx-ingress-controller.yml
+- name: Install Nginx ingress controller
+  import_playbook: nginx-ingress-controller.yml
 
-#- name: Install NFS Server for master
-#  import_playbook: nfs-server-k8s.yml
+- name: Install NFS Server for master
+  import_playbook: nfs-server-k8s.yml
 
-#- name: Apply Grafana Monitor
-#  import_playbook: grafana.yml
+- name: Apply Grafana Monitor
+  import_playbook: grafana.yml
