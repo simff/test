@@ -14,6 +14,9 @@
   - name: Apply dashboard-service-account
     shell: kubectl apply -f https://raw.githubusercontent.com/simff/test/master/k8s/mnn/dashboard-service-account.yaml
 
-# kubectl -n kubernetes-dashboard create token admin-user
+  - name: Apply dashboard-Ingress
+    shell: kubectl apply -f https://raw.githubusercontent.com/simff/test/master/k8s/mnn/ingress-dashboard.yaml
+
+# kubectl -n kubernetes-dashboard create token admin-user --duration=9999h
+
 # kubectl -n kubernetes-dashboard port-forward svc/kubernetes-dashboard-kong-proxy 8443:443 &
-    

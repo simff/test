@@ -1,6 +1,6 @@
 ---
-- name: Disable autoupdate
-  import_playbook: disable-autoupdate.yml
+#- name: Disable autoupdate
+#  import_playbook: disable-autoupdate.yml
 
 - name: Add Hosts
   import_playbook: add-hosts.yml
@@ -43,7 +43,7 @@
   import_playbook: add-worknodes.yml
 # --------------------------------------------------------
 - name: Install Helm
-  import_playbook: helm.yml
+  import_playbook: snap-helm.yml
 
 - name: Install Nginx ingress controller
   import_playbook: nginx-ingress-controller.yml

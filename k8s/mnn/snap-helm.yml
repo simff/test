@@ -1,0 +1,12 @@
+---
+-
+  become: true
+  hosts: master
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Snap install helm 
+    shell: snap install helm --classic
+
+  - name: Helm repo add
+    shell: helm repo add bitnami https://charts.bitnami.com/bitnami
