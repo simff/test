@@ -1,6 +1,6 @@
 ---
-#- name: Disable autoupdate
-#  import_playbook: disable-autoupdate.yml
+- name: Disable autoupdate
+  import_playbook: disable-autoupdate.yml
 
 - name: Add Hosts
   import_playbook: add-hosts.yml
@@ -53,3 +53,6 @@
 
 - name: Apply Grafana Monitor
   import_playbook: grafana.yml
+
+- name: Apply Dashboard
+  import_playbook: dashboard.yml

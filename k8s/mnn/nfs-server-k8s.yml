@@ -22,7 +22,7 @@
     apt:
       name:
         - nfs-kernel-server
-        
+
   - name: Restart nfs-server
     service:
       name: "nfs-server"
@@ -65,5 +65,9 @@
 
   - name: Apply exports
     shell: exportfs -a
+
+  - name: Pausing for 30 seconds
+    pause:
+      seconds: 30
 
 # showmount --exports master
