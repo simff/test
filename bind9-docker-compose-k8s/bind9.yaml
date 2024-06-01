@@ -1,0 +1,86 @@
+# mkdir /opt/data/bind9
+# chmod 0777 /opt/data/bind9
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-share-bind
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  nfs:
+    server: 192.168.1.210
+    path: /opt/data/
+
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: files-dns
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: bind9
+  labels:
+    app : my-dns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      project: local-dns
+  template:
+    metadata:
+      labels:
+        project: local-dns   # Service will look for those PODS Labels!!!
+    spec:
+      containers:
+      - image: simff/bind9
+        imagePullPolicy: Always
+        name: bind9
+        ports:
+        - containerPort: 53
+          protocol: TCP
+          name: tcp-53
+        - containerPort: 53
+          protocol: UDP
+          name: udp-53
+#        volumeMounts:
+#        - mountPath: /etc/bind
+#          name: data-bind
+#      volumes:
+#      - name: data-bind
+#        persistentVolumeClaim:
+#           claimName: files-dns
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bind9
+  labels:
+     env  : bind9
+     owner: Alexey_Simonov
+spec:
+  selector:
+    project: local-dns      # Selecting PODs with those Labels
+  ports:
+    - protocol  : TCP
+      port      : 53
+      targetPort: 53
+      name: tcp-53
+    - protocol  : UDP
+      port      : 53
+      targetPort: 53
+      name: udp-53
