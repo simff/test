@@ -1,0 +1,23 @@
+#!/bin/bash
+img=nginx
+tg=latest
+commit="nginx"
+
+img_s=${img//'/'/"-"}
+
+image_s='"'$img_s'"'
+image='"'$img'"'
+tag='"'$tg'"'
+
+cat gitlab-ci.yml > .gitlab-ci.yml
+echo -ne "variables:\n   image: $image\n   tag: $tag\n   image_simple: $image_s\n" >> .gitlab-ci.yml
+git add .
+git commit -m $commit
+git push
+echo "waiting for 3 minutes the pipeline"
+sleep 180
+cat my_password.txt | docker login -u karkakyc --password-stdin registry.gitlab.com
+docker pull registry.gitlab.com/karkakyc/docker-hub:$img_s-$tg
+docker image tag registry.gitlab.com/karkakyc/docker-hub:$img_s-$tg $img:$tg
+docker rmi registry.gitlab.com/karkakyc/docker-hub:$img_s-$tg
+

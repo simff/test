@@ -1,0 +1,21 @@
+stages:
+  - build
+build-job:
+  stage: build
+  script:
+    - echo $image":"$tag
+    - apt update
+    - apt install docker.io -y
+#    - docker --version
+    - service docker start
+    - sleep 10
+#    - service docker status
+#    - docker search simff
+#    - curl https://registry.hub.docker.com/v2/repositories/simff/ng/tags/
+    - docker image pull $image":"$tag
+    - docker images
+    - docker image tag $image":"$tag registry.gitlab.com/karkakyc/docker-hub:$image_simple-$tag
+    - docker images
+    - cat my_password.txt | docker login -u karkakyc --password-stdin registry.gitlab.com
+    - docker push registry.gitlab.com/karkakyc/docker-hub:$image_simple-$tag
+
