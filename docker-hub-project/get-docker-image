@@ -1,7 +1,7 @@
 #!/bin/bash
-img=nginx
-tg=latest
-commit="nginx"
+img=simff/ng
+tg=base
+commit="ng-base"
 
 img_s=${img//'/'/"-"}
 
@@ -20,4 +20,3 @@ cat my_password.txt | docker login -u karkakyc --password-stdin registry.gitlab.
 docker pull registry.gitlab.com/karkakyc/docker-hub:$img_s-$tg
 docker image tag registry.gitlab.com/karkakyc/docker-hub:$img_s-$tg $img:$tg
 docker rmi registry.gitlab.com/karkakyc/docker-hub:$img_s-$tg
-
