@@ -1,0 +1,15 @@
+---
+- name: Disable autoupdate selinux firewall
+  import_playbook: before-install.yml
+
+- name: Install GitLab
+  import_playbook: gitlab-install.yml
+
+- name: Install Runner
+  import_playbook: runner.yml
+
+- name: Install docker.io
+  import_playbook: docker.io-install.yml
+
+- name: Show root password
+  import_playbook: show-root-passwd.yml

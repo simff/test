@@ -1,0 +1,70 @@
+---
+-
+  become: true
+  hosts: gitlab
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Disabled AutoUpdate
+    copy:
+      dest: "/etc/apt/apt.conf.d/20auto-upgrades"
+      content: |
+        APT::Periodic::Update-Package-Lists "0";
+        APT::Periodic::Unattended-Upgrade "0";
+
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install packeges
+    apt:
+      name:
+        - policycoreutils
+
+  - name: Selinux Disabled
+    lineinfile: dest=/etc/selinux/config
+                regexp='^SELINUX='
+                insertbefore=BOF
+                line='SELINUX=disabled'
+
+  - name: UFW disabled
+    community.general.ufw:
+      state: disabled
+
+  - name: Unconditionally reboot the machine with all defaults
+    ansible.builtin.reboot:
+
+-
+  become: true
+  hosts: runners
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Disabled AutoUpdate
+    copy:
+      dest: "/etc/apt/apt.conf.d/20auto-upgrades"
+      content: |
+        APT::Periodic::Update-Package-Lists "0";
+        APT::Periodic::Unattended-Upgrade "0";
+
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install packeges
+    apt:
+      name:
+        - policycoreutils
+
+  - name: Selinux Disabled
+    lineinfile: dest=/etc/selinux/config
+                regexp='^SELINUX='
+                insertbefore=BOF
+                line='SELINUX=disabled'
+
+  - name: UFW disabled
+    community.general.ufw:
+      state: disabled
+
+  - name: Unconditionally reboot the machine with all defaults
+    ansible.builtin.reboot:

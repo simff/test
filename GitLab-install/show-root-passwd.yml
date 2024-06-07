@@ -1,0 +1,11 @@
+---
+-
+  become: true
+  hosts: gitlab
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Root password
+    shell: cat /etc/gitlab/initial_root_password | grep Password
+    register: rp
+  - debug: var=rp.stdout_lines

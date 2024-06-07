@@ -1,0 +1,29 @@
+---
+-
+  become: true
+  hosts: runners
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Add repo for gitlab-runner
+    shell: curl -L "https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh" | sudo bash
+
+  - name: Install gitlab-runner
+    apt:
+      name:
+        - gitlab-runner
+
+  - name: Restart gitlab-runner
+    service:
+      name: "gitlab-runner"
+      daemon_reload: true
+      state: "restarted"
+      enabled: "yes"
+
+  - name: line insert
+    lineinfile:
+      path: "/etc/sudoers"
+      line: gitlab-runner ALL=(ALL:ALL) NOPASSWD:ALL
+      insertbefore: BOF
+
+# gitlab-runner register

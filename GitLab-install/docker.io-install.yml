@@ -1,0 +1,18 @@
+---
+-
+  become: true
+  hosts: runners
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Install docker.io
+    apt:
+      name:
+        - docker.io
+
+  - name: Restart docker
+    service:
+      name: "docker"
+      daemon_reload: true
+      state: "restarted"
+      enabled: "yes"
