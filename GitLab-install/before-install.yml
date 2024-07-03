@@ -12,6 +12,14 @@
         APT::Periodic::Update-Package-Lists "0";
         APT::Periodic::Unattended-Upgrade "0";
 
+  - name: Add host /etc/hosts
+    copy:
+      dest: "/etc/hosts"
+      content: |
+        127.0.0.1 localhost
+        {{ hostvars['gitlab'].ansible_host }} {{ hostvars['gitlab'].inventory_hostname }} {{ hostvars['gitlab'].inventory_hostname }}.my registry.{{ hostvars['gitlab'].inventory_hostname }}.my
+        {{ hostvars['runners'].ansible_host }} {{ hostvars['runners'].inventory_hostname }}
+
   - name: Update APT
     apt:
       update_cache: yes
@@ -40,6 +48,14 @@
   become_method: sudo
   become_user: root
   tasks:
+  - name: Add host /etc/hosts
+    copy:
+      dest: "/etc/hosts"
+      content: |
+        127.0.0.1 localhost
+        {{ hostvars['gitlab'].ansible_host }} {{ hostvars['gitlab'].inventory_hostname }} {{ hostvars['gitlab'].inventory_hostname }}.my registry.{{ hostvars['gitlab'].inventory_hostname }}.my
+        {{ hostvars['runners'].ansible_host }} {{ hostvars['runners'].inventory_hostname }}
+
   - name: Disabled AutoUpdate
     copy:
       dest: "/etc/apt/apt.conf.d/20auto-upgrades"

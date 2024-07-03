@@ -9,6 +9,7 @@
     apt:
       name:
         - docker.io
+        - curl
 
   - name: Restart docker
     service:

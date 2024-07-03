@@ -19,11 +19,17 @@
       name:
         - gitlab-ce
 
-  - name: Edit /etc/gitlab/gitlab.rb
+  - name: Set external_url
     lineinfile: dest=/etc/gitlab/gitlab.rb
                 regexp='^external_url'
                 insertbefore=BOF
                 line="external_url 'http://gitlab.my'"
+
+  - name: Set registry_external_url
+    lineinfile: dest=/etc/gitlab/gitlab.rb
+                regexp='^# registry_external_url'
+                insertbefore=BOF
+                line="registry_external_url 'http://registry.gitlab.my'"
 
   - name: GitLab reconfigure
     shell: gitlab-ctl reconfigure > reconfigure.log

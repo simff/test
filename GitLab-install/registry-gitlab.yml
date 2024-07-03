@@ -1,0 +1,15 @@
+---
+-
+  become: true
+  hosts: gitlab
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Edit /etc/gitlab/gitlab.rb
+    lineinfile: dest=/etc/gitlab/gitlab.rb
+                regexp='^external_url'
+                insertbefore=BOF
+                line="registry_external_url 'http://registry.gitlab.my:5000'"
+
+  - name: GitLab reconfigure
+    shell: gitlab-ctl reconfigure > reconfigure.log
