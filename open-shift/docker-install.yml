@@ -1,0 +1,54 @@
+---
+-
+  become: true
+  hosts: masters
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install packeges
+    apt:
+      name:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - wget
+        - git
+        - htop
+        - net-tools
+        - gnupg
+
+  - name: Changes /etc/modules-load.d/modules.conf
+    ansible.builtin.lineinfile:
+      path: /etc/modules-load.d/modules.conf
+      line: br_netfilter \noverlay
+      create: yes
+
+  - name: Creating /etc/sysctl.d/kube.conf
+    ansible.builtin.lineinfile:
+      path: /etc/sysctl.d/kube.conf
+      line: net.bridge.bridge-nf-call-iptables = 1
+      create: yes
+
+  - name: Install Docker
+    apt:
+      name:
+        - docker
+        - docker.io
+
+  - name: Creating /etc/docker/daemon.json
+    copy:
+      dest: "/etc/docker/daemon.json"
+      content: |
+        {
+          "insecure-registries" : [ "172.30.0.0/16" ]
+        }
+
+  - name: Restart Docker
+    service:
+      name: "docker"
+      state: "restarted"
+      enabled: "yes"
