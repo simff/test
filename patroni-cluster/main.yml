@@ -1,0 +1,15 @@
+---
+#- name: Disable autoupdate
+#  import_playbook: disable-autoupdate.yml
+
+- name: Add Hosts
+  import_playbook: add-hosts.yml
+
+- name: Etcd-Cluster
+  import_playbook: etcd-cluster.yml
+
+- name: Postgresql
+  import_playbook: postgresql.yml
+
+- name: Patroni
+  import_playbook: patroni.yml

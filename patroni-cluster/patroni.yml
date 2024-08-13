@@ -1,0 +1,126 @@
+---
+-
+  become: true
+  hosts: all
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install python3
+    apt:
+      name:
+        - python3-pip
+        - python3-dev
+        - libpq-dev
+
+
+  - name: pip3 install
+    shell: pip3 install --upgrade pip
+
+  - name: pip install patroni
+    shell: pip install patroni python-etcd psycopg2
+
+  - name: Create /etc/patroni.yml
+    copy:
+      dest: "/etc/patroni.yml"
+      content: |
+        scope: postgres
+        namespace: /db/
+        name: {{ inventory_hostname }}
+        restapi:
+          listen: {{ ansible_host }}:8008
+          connect_address: {{ ansible_host }}:8008
+        etcd:
+          hosts: {{ hostvars['p1'].ansible_host }}:2379,{{ hostvars['p2'].ansible_host }}:2379,{{ hostvars['p3'].ansible_host }}:2379
+          #    host: 192.168.1.211:2379
+        bootstrap:
+          dcs:
+            ttl: 30
+            loop_wait: 10
+            retry_timeout: 10
+            maximum_lag_on_failover: 1048576
+            postgresql:
+              use_pg_rewind: true
+          initdb:
+          - encoding: UTF8
+          - data-checksums
+          pg_hba:
+          - host replication replicator 127.0.0.1/32 md5
+          - host replication replicator {{ hostvars['p1'].ansible_host }}/0 md5
+          - host replication replicator {{ hostvars['p2'].ansible_host }}/0 md5
+          - host replication replicator {{ hostvars['p3'].ansible_host }}/0 md5
+          - host all all 0.0.0.0/0 md5
+          users:
+            admin:
+              password: admin
+              options:
+                - createrole
+                - createdb
+        postgresql:
+          listen: {{ ansible_host }}:5432
+          connect_address: {{ ansible_host }}:5432
+          data_dir: /mnt/patroni
+          pgpass: /tmp/pgpass
+          authentication:
+            replication:
+              username: replicator
+              password: password
+            superuser:
+              username: postgres
+              password: password
+          parameters:
+            unix_socket_directories: '.'
+        tags:
+          nofailover: false
+          noloadbalance: false
+          clonefrom: false
+          nosync: false
+
+  - name: Create /mnt/patroni
+    ansible.builtin.file:
+      path: /mnt/patroni
+      state: directory
+      owner: postgres
+      group: postgres
+      mode: '0700'
+
+  - name: Create patroni.service
+    copy:
+      dest: "/etc/systemd/system/patroni.service"
+      content: |
+        [Unit]
+        Description=Runners to orchestrate a high-availability PostgreSQL
+        After=syslog.target network.target
+        [Service]
+        Type=simple
+        User=postgres
+        Group=postgres
+        ExecStart=/usr/local/bin/patroni /etc/patroni.yml
+        KillMode=process
+        TimeoutSec=30
+        Restart=no
+        [Install]
+        WantedBy=multi-user.target
+
+  - name: Start patroni
+    service:
+      daemon_reload: true
+      state: "started"
+      name: "patroni"
+      enabled: "yes"
+
+  - name: Change postgresql.service
+    lineinfile: dest=/usr/lib/systemd/system/postgresql.service
+                regexp='^After='
+                insertafter=BOF
+                line='After=patroni.service'
+
+  - name: Start postgresql
+    service:
+      state: "started"
+      name: "postgresql"
+      enabled: "yes"
+      daemon_reload: true

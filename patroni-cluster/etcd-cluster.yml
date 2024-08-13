@@ -1,0 +1,58 @@
+---
+-
+  become: true
+  hosts: all
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install etcd
+    apt:
+      name:
+        - etcd
+
+  - name: Stop etcd
+    service:
+      name: "etcd"
+      state: "stopped"
+
+  - name: Edit etcd config
+    copy:
+      dest: "/etc/default/etcd"
+      content: |
+        ETCD_NAME="{{inventory_hostname}}"
+        ETCD_DATA_DIR="/var/lib/etcd/default.etcd"
+        ETCD_LISTEN_PEER_URLS="http://{{ansible_host}}:2380"
+        ETCD_LISTEN_CLIENT_URLS="http://{{ansible_host}}:2379,http://127.0.0.1:2379"
+        ETCD_INITIAL_ADVERTISE_PEER_URLS="http://{{ansible_host}}:2380"
+        ETCD_INITIAL_CLUSTER_STATE="new"
+        ETCD_INITIAL_CLUSTER_TOKEN="etcd-token-1"
+        ETCD_ADVERTISE_CLIENT_URLS="http://{{ansible_host}}:2379"
+        ETCD_INITIAL_CLUSTER="{{ hostvars['p1'].inventory_hostname }}=http://{{ hostvars['p1'].ansible_host }}:2380,{{ hostvars['p2'].inventory_hostname }}=http://{{ hostvars['p2'].ansible_host }}:2380,{{ hostvars['p3'].inventory_hostname }}=http://{{ hostvars['p3'].ansible_host }}:2380"
+
+  - name: Start etcd
+    service:
+      name: "etcd"
+      state: "started"
+
+  - name: Change etcd config
+    lineinfile: dest=/etc/default/etcd
+                regexp='^ETCD_INITIAL_CLUSTER_STATE'
+                insertbefore=BOF
+                line='ETCD_INITIAL_CLUSTER_STATE="existing"'
+
+  - name: Change etcd.service
+    lineinfile: dest=/usr/lib/systemd/system/etcd.service
+                regexp='^Type='
+                insertbefore=BOF
+                line='Type=idle'
+
+  - name: Restart etcd
+    service:
+      name: "etcd"
+      daemon_reload: true
+      state: "restarted"
+      enabled: "yes"

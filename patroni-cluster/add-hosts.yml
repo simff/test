@@ -1,0 +1,22 @@
+---
+-
+  become: true
+  hosts: all
+  become_method: sudo
+  become_user: root
+  tasks:
+# ----- /etc/hosts ---------------------
+  - name: Add host /etc/hosts
+    copy:
+      dest: "/etc/hosts"
+      content: |
+        127.0.0.1 localhost
+        {{ hostvars['p1'].ansible_host }} {{ hostvars['p1'].inventory_hostname }}
+        {{ hostvars['p2'].ansible_host }} {{ hostvars['p2'].inventory_hostname }}
+        {{ hostvars['p3'].ansible_host }} {{ hostvars['p3'].inventory_hostname }}
+
+#  - name: Add a line to /etc/hosts
+#    ansible.builtin.lineinfile:
+#      path: /etc/hosts
+#      line: 192.168.1.210 registry.example.com
+#      create: yes

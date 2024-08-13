@@ -1,0 +1,25 @@
+---
+-
+  become: true
+  hosts: all
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install postgresql
+    apt:
+      name:
+        - postgresql
+        - postgresql-contrib
+
+  - name: Stop postgresql
+    service:
+      name: "postgresql"
+      state: "stopped"
+      enabled: "yes"
+
+  - name: Link files
+    shell: ln -s /usr/lib/postgresql/14/bin/* /usr/sbin/
