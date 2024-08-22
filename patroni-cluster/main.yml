@@ -13,3 +13,6 @@
 
 - name: Patroni
   import_playbook: patroni.yml
+
+- name: HaProxy
+  import_playbook: haproxy-cluster.yml

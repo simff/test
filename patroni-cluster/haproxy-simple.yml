@@ -1,0 +1,69 @@
+---
+-
+  become: true
+  hosts: haproxy
+  become_method: sudo
+  become_user: root
+  tasks:
+#  - name: Update APT
+#    apt:
+#      update_cache: yes
+
+  - name: Install haproxy
+    apt:
+      name:
+      - haproxy
+
+  - name: Change /etc/sysctl.conf
+    ansible.builtin.blockinfile:
+      path: /etc/sysctl.conf
+      block: |
+        net.ipv4.ip_nonlocal_bind=1
+
+  - name: Apply system changes
+    shell: sysctl --system
+
+#  - name: Edit /etc/NetworkManager/system-connections/Проводное соединение 1.nmconnection
+#    ansible.builtin.lineinfile:
+#      path: '/etc/NetworkManager/system-connections/Проводное соединение 1.nmconnection'
+#      insertafter: '^address1'
+#      line: 'address2=192.168.1.210/24'
+
+  - name: Change /etc/haproxy/haproxy.cfg
+    copy:
+      dest: "/etc/haproxy/haproxy.cfg"
+      content: |
+        global
+          maxconn 100
+          log     127.0.0.1 local2
+        defaults
+          log global
+          mode tcp
+          retries 2
+          timeout client 30m
+          timeout connect 4s
+          timeout server 30m
+          timeout check 5s
+        listen stats
+          mode http
+          bind *:8080
+          stats enable
+          stats uri /
+        listen postgres
+          bind *:5430
+          option httpchk
+          http-check expect status 200
+          default-server inter 3s fall 3 rise 2 on-marked-down shutdown-sessions
+          server {{ hostvars['p1'].inventory_hostname }} {{ hostvars['p1'].ansible_host }}:5432 maxconn 100 check port 8008
+          server {{ hostvars['p2'].inventory_hostname }} {{ hostvars['p2'].ansible_host }}:5432 maxconn 100 check port 8008
+          server {{ hostvars['p3'].inventory_hostname }} {{ hostvars['p3'].ansible_host }}:5432 maxconn 100 check port 8008
+
+
+  - name: Restart haproxy
+    service:
+      name: "haproxy"
+      state: "restarted"
+      enabled: "yes"
+
+#  - name: Unconditionally reboot the machine with all defaults
+#    ansible.builtin.reboot:
