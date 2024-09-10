@@ -12,7 +12,7 @@ spec:
     - ReadWriteMany
   persistentVolumeReclaimPolicy: Retain
   nfs:
-    server: 192.168.1.210
+    server: {{ hostvars['master'].ansible_host }}
     path: /opt/data/grafana
 
 ---
