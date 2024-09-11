@@ -1,0 +1,15 @@
+---
+-
+  become: true
+  hosts: masters
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Helm repo add prometheus-community
+    shell: helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+
+  - name: Apply monitoring prometheus
+    shell: helm upgrade --install monitoring prometheus-community/kube-prometheus-stack --create-namespace --namespace kubernetes-monitoring
+
+# Service: monitoring-kube-prometheus-prometheus
+# Grafana 1860

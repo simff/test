@@ -56,3 +56,6 @@
 
 - name: Apply Dashboard
   import_playbook: dashboard.yml
+
+- name: Apply monitoring prometheus
+  import_playbook: prometheus-monitoring.yml
