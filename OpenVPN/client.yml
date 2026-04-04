@@ -1,0 +1,111 @@
+---
+-
+  become: true
+  hosts: server
+  become_method: sudo
+  become_user: root
+  vars_prompt:
+    - name: uname
+      prompt: Client Name
+      private: false
+#    - name: capass
+#      prompt: CA password
+
+  tasks:
+  - name: Get capass
+    shell: cat /root/ca.pass
+    register: capass
+
+#  - name: Print User Name
+#    ansible.builtin.debug:
+#      var: uname
+
+#  - name: Print ca password
+#    ansible.builtin.debug:
+#      var: capass.stdout
+
+#  - name: Pause for 5 seconds
+#    ansible.builtin.pause:
+#      seconds: 5
+
+  - name: Create a directory
+    file:
+      path: /etc/openvpn/client/keys
+      state: directory
+
+  - name: Make client.key
+    command: bash -lc "cd /etc/openvpn/easy-rsa/ && echo -ne {{uname}} '\n' |./easyrsa gen-req {{uname}} nopass"
+
+  - name: Make client.crt
+    ansible.builtin.expect:
+      chdir: /etc/openvpn/easy-rsa/
+      command: ./easyrsa sign-req client {{uname}}
+      responses:
+        Confirm request details: "yes"
+        Enter pass phrase for /etc/openvpn/easy-rsa/pki/private/ca.key: "{{capass.stdout}}"
+
+  - name: Copy client.key
+    ansible.builtin.copy:
+      src: /etc/openvpn/easy-rsa/pki/private/{{uname}}.key
+      dest: /etc/openvpn/client/keys/{{uname}}.key
+      remote_src: yes
+
+  - name: Copy client.crt
+    ansible.builtin.copy:
+      src: /etc/openvpn/easy-rsa/pki/issued/{{uname}}.crt
+      dest: /etc/openvpn/client/keys/{{uname}}.crt
+      remote_src: yes
+
+  - name: Create client.conf
+    copy:
+      dest: "/etc/openvpn/client/{{uname}}.ovpn"
+      content: |
+          client
+          dev tun
+          proto udp
+          remote {{ ansible_host }} 1194
+          resolv-retry infinite
+          nobind
+          persist-key
+          persist-tun
+          remote-cert-tls server
+          data-ciphers AES-256-GCM:AES-128-GCM:CHACHA20-POLY1305:AES-256-CBC
+          auth SHA512
+          verb 3
+          #
+
+  - name: Create modify script
+    copy:
+      dest: "/root/modify.sh"
+      mode: '0755'
+      content: |
+          #!/bin/bash
+          cd /etc/openvpn/client/
+          cat <<EOF >> {{uname}}.ovpn
+          <ca>
+          $(< /etc/openvpn/ca.crt)
+          </ca>
+          <cert>
+          $(< keys/{{uname}}.crt)
+          </cert>
+          <key>
+          $(< keys/{{uname}}.key)
+          </key>
+          <tls-auth>
+          $(< /etc/openvpn/ta.key)
+          </tls-auth>
+          key-direction 1
+          EOF
+
+  - name: Modify client.conf
+    command: bash -lc "/root/modify.sh"
+
+  - name: Pause for 5 seconds
+    ansible.builtin.pause:
+      seconds: 5
+
+  - name: Fetch a file from a remote host
+    ansible.builtin.fetch:
+      src: /etc/openvpn/client/{{uname}}.ovpn
+      dest: ./
+      flat: yes

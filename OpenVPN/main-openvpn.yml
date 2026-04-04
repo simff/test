@@ -1,0 +1,9 @@
+---
+- name: Install openvpn server
+  import_playbook: openvpn-server.yml
+
+- name: Create openvpn client
+  import_playbook: client.yml
+
+- name: Create openvpn client
+  import_playbook: client.yml

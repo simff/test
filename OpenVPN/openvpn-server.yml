@@ -1,0 +1,166 @@
+---
+-
+  become: true
+  hosts: hosts
+  become_method: sudo
+  become_user: root
+  vars_prompt:
+    - name: caname
+      prompt: Common Name
+      private: false
+    - name: capassword
+      prompt: What is ca.crt password?
+  tasks:
+  - name: Stop old service openvpn
+    shell: q=$(systemctl list-units --type=service --state=active |grep openvpn@) && w=$(echo $q | cut -d '.' -f1) && service $w stop
+    ignore_errors: yes
+
+  - name: Remove old files
+    command: bash -lc "cd /etc/openvpn/ && rm *.crt *.conf *.key dh.pem /etc/systemd/system/multi-user.target.wants/openvpn@*"
+    ignore_errors: yes
+
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install packeges
+    apt:
+      name:
+        - net-tools
+        - openvpn
+        - easy-rsa
+
+  - name: Delete content & directory
+    ansible.builtin.file:
+      state: absent
+      path: /etc/openvpn/easy-rsa/
+
+  - name: make-cadir
+    shell: make-cadir /etc/openvpn/easy-rsa
+
+  - name: Init-pki
+    shell: echo -ne yes '\n' |/etc/openvpn/easy-rsa/easyrsa init-pki
+    args:
+      chdir: /etc/openvpn/easy-rsa/
+
+  - name: Make ca.crt
+    command: bash -lc "cd /etc/openvpn/easy-rsa/ && echo -ne {{ capassword }} '\n' {{ capassword }} '\n' {{caname}} '\n' |/etc/openvpn/easy-rsa/easyrsa build-ca"
+
+  - name: Copy ca.crt
+    ansible.builtin.copy:
+      src: /etc/openvpn/easy-rsa/pki/ca.crt
+      dest: /etc/openvpn/ca.crt
+      remote_src: yes
+
+  - name: Make server.key
+    command: bash -lc "cd /etc/openvpn/easy-rsa/ && echo -ne {{caname}} '\n' |./easyrsa gen-req {{caname}} nopass"
+
+  - name: Copy server.key
+    ansible.builtin.copy:
+      src: /etc/openvpn/easy-rsa/pki/private/{{caname}}.key
+      dest: /etc/openvpn/{{caname}}.key
+      remote_src: yes
+
+  - name: Gen-dh
+    shell: /etc/openvpn/easy-rsa/easyrsa gen-dh
+    args:
+      chdir: /etc/openvpn/easy-rsa/
+
+  - name: Copy dh.pem
+    ansible.builtin.copy:
+      src: /etc/openvpn/easy-rsa/pki/dh.pem
+      dest: /etc/openvpn/dh.pem
+      remote_src: yes
+
+
+  - name: Make openvpn ta.key
+    command: bash -lc "cd /etc/openvpn/ && openvpn --genkey secret ta.key"
+
+  - name: Make server.crt
+    ansible.builtin.expect:
+      chdir: /etc/openvpn/easy-rsa/
+      command: ./easyrsa sign-req server {{caname}}
+      responses:
+        Confirm request details: "yes"
+        Enter pass phrase for /etc/openvpn/easy-rsa/pki/private/ca.key: "{{capassword}}"
+
+  - name: Copy server.crt
+    ansible.builtin.copy:
+      src: /etc/openvpn/easy-rsa/pki/issued/{{caname}}.crt
+      dest: /etc/openvpn/{{caname}}.crt
+      remote_src: yes
+
+  - name: Create openvpn.conf
+    copy:
+      dest: "/etc/openvpn/{{caname}}.conf"
+      content: |
+          local {{ ansible_host }}
+          port 1194
+          proto udp
+          dev tun
+          ca /etc/openvpn/ca.crt
+          cert /etc/openvpn/{{caname}}.crt
+          key /etc/openvpn/{{caname}}.key
+          dh /etc/openvpn/dh.pem
+          data-ciphers AES-256-GCM:AES-128-GCM:?CHACHA20-POLY1305:AES-256-CBC
+          auth SHA512
+          topology subnet
+          server 10.10.10.0 255.255.255.0
+          ifconfig-pool-persist /var/log/openvpn/ipp.txt
+          push "redirect-gateway def1 bypass-dhcp"
+          push "dhcp-option DNS 8.8.8.8"
+          keepalive 10 120
+          tls-auth /etc/openvpn/ta.key 0
+          persist-key
+          persist-tun
+          status /var/log/openvpn/openvpn-status.log
+          verb 3
+          explicit-exit-notify 1
+
+  - name: Restart service openvpn
+    ansible.builtin.service:
+      name: openvpn@{{caname}}
+      state: restarted
+      enabled: "yes"
+
+  - name: Save ca password to ca.pass file
+    copy:
+      content: "{{ capassword }}"
+      dest: '/root/ca.pass'
+
+  - name: Set net.ipv4.ip_forward in sysctl
+    become: yes
+    sysctl:
+      name: net.ipv4.ip_forward
+      value: '1'
+      state: present
+      reload: yes
+
+  - name: Set up NAT on iptables ip
+    ansible.builtin.iptables:
+      table: nat
+      chain: POSTROUTING
+      source: 10.10.10.0/24
+      destination: 0.0.0.0/0
+      jump: MASQUERADE
+
+  - name: Set up NAT on iptables interface
+    ansible.builtin.iptables:
+      table: nat
+      chain: POSTROUTING
+      source: 10.10.10.0/24
+      out_interface: "{{ansible_default_ipv4.interface}}"
+      jump: MASQUERADE
+
+  - name: Save current state of the firewall in system file
+    community.general.iptables_state:
+      state: saved
+      path: /etc/iptables/rules.v4
+
+  - name: Create iptables-restore script
+    copy:
+      dest: "/etc/rc.local"
+      mode: '0755'
+      content: |
+          #!/bin/sh
+          iptables-restore < /etc/iptables/rules.v4
