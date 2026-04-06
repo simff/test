@@ -5,37 +5,6 @@
   become_method: sudo
   become_user: root
   tasks:
-  - name: Set up NAT on iptables ip
-    ansible.builtin.iptables:
-      table: nat
-      chain: POSTROUTING
-      source: 10.10.10.0/24
-      destination: 0.0.0.0/0
-      jump: MASQUERADE
-
-  - name: Set up NAT on iptables interface
-    ansible.builtin.iptables:
-      table: nat
-      chain: POSTROUTING
-      source: 10.10.10.0/24
-      out_interface: "{{ansible_default_ipv4.interface}}"
-      jump: MASQUERADE
-
-  - name: Save current state of the firewall in system file
-    community.general.iptables_state:
-      state: saved
-      path: /etc/iptables/rules.v4
-
-#  - name: iptables-restore
-#    ansible.builtin.lineinfile:
-#      path: "/etc/rc.local"
-#      line: "iptables-restore < /etc/iptables/rules.v4"
-#      regexp: '^### BE'
-
-  - name: Create iptables-restore script
-    copy:
-      dest: "/etc/rc.local"
-      mode: '0755'
-      content: |
-          #!/bin/sh
-          iptables-restore < /etc/iptables/rules.v4
+  - name: Update APT
+    apt:
+      update_cache: yes

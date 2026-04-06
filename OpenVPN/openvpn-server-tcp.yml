@@ -95,8 +95,8 @@
       dest: "/etc/openvpn/{{caname}}.conf"
       content: |
           local {{ ansible_host }}
-          port 1194
-          proto udp
+          port 443
+          proto tcp
           dev tun
           ca /etc/openvpn/ca.crt
           cert /etc/openvpn/{{caname}}.crt
@@ -115,7 +115,6 @@
           persist-tun
           status /var/log/openvpn/openvpn-status.log
           verb 3
-          # explicit-exit-notify 1
 
   - name: Restart service openvpn
     ansible.builtin.service:

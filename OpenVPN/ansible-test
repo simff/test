@@ -1,0 +1,7 @@
+#!/bin/bash
+read -p "Input host ip address: " i
+echo $i 
+echo -ne [hosts]'\n'server ansible_host=$i '\n' > inv.ini
+ansible -i inv.ini all -m ping
+
+
