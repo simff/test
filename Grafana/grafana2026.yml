@@ -1,0 +1,52 @@
+---
+-
+  become: true
+  hosts: hosts
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install pip curl
+    apt:
+      name:
+        - pip
+        - curl
+
+  - name: Install yadisk-direct
+    shell: pip3 install wldhx.yadisk-direct --break-system-packages
+    ignore_errors: yes
+
+  - name: Get grafana-enterprise_13.0.1_amd64.tar.gz
+    shell: curl -L $(yadisk-direct https://disk.yandex.ru/d/lDHvkkp11IP7EQ) -o grafana-enterprise_13.0.1_amd64.tar.gz
+
+  - name: Create a directory
+    ansible.builtin.file:
+      path: /usr/local/repos
+      state: directory
+
+  - name: Extract archive
+    ansible.builtin.unarchive:
+      src: grafana-enterprise_13.0.1_amd64.tar.gz
+      dest: /usr/local/repos
+      remote_src: yes
+
+  - name: Make sources.list
+    shell: echo "deb [trusted=yes] file:/usr/local/repos ./" >> /etc/apt/sources.list
+
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install grafana-enterprise
+    apt:
+      name:
+        - grafana-enterprise
+
+  - name: Start grafana-server
+    service:
+      name: "grafana-server"
+      state: "started"
+      enabled: "yes"
