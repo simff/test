@@ -5,9 +5,9 @@
   become_method: sudo
   become_user: root
   tasks:
-  - name: Update APT
-    apt:
-      update_cache: yes
+#  - name: Update APT
+#    apt:
+#      update_cache: yes
 
   - name: Install postgresql
     apt:
@@ -21,5 +21,13 @@
       state: "stopped"
       enabled: "yes"
 
+  - name: Check postgresql version
+    ansible.builtin.shell: ls /usr/lib/postgresql/
+    register: psql_ver
+
+#  - name: Print
+#    debug:
+#      msg: "{{psql_ver.stdout}}"
+
   - name: Link files
-    shell: ln -s /usr/lib/postgresql/14/bin/* /usr/sbin/
+    shell: ln -s /usr/lib/postgresql/{{psql_ver.stdout}}/bin/* /usr/sbin/

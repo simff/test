@@ -5,9 +5,9 @@
   become_method: sudo
   become_user: root
   tasks:
-  - name: Update APT
-    apt:
-      update_cache: yes
+#  - name: Update APT
+#    apt:
+#      update_cache: yes
 
   - name: Install haproxy
     apt:
@@ -26,7 +26,7 @@
   - name: Edit /etc/netplan/00-installer-config.yaml
     lineinfile:
       path: /etc/netplan/00-installer-config.yaml
-      insertafter: "^      addresses:"
+      insertafter: "^      - {{ansible_host}}"
       line: "      - {{hostvars['haproxy'].ansible_host}}/24"
 
   - name: Restart netplan
@@ -68,5 +68,5 @@
       state: "restarted"
       enabled: "yes"
 
-  - name: Unconditionally reboot the machine with all defaults
-    ansible.builtin.reboot:
+#  - name: Unconditionally reboot the machine with all defaults
+#    ansible.builtin.reboot:
