@@ -27,7 +27,7 @@
     ansible.builtin.lineinfile:
       path: '/etc/NetworkManager/system-connections/Проводное соединение 1.nmconnection'
       insertafter: '^address1'
-      line: 'address2=192.168.1.210/24'
+      line: "address2={{hostvars['haproxy'].ansible_host}}/24"
 
   - name: Restart NetworkManager
     service:

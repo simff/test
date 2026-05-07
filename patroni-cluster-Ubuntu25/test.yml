@@ -1,0 +1,14 @@
+---
+-
+  become: true
+  hosts: nodes
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Check postgresql version
+    ansible.builtin.shell: ls /usr/lib/postgresql/
+    register: psql_ver
+
+  - name: Print
+    debug:
+      msg: "{{ psql_ver.stdout }}"

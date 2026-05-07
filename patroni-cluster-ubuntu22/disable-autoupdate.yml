@@ -1,7 +1,7 @@
 ---
 -
   become: true
-  hosts: all
+  hosts: nodes
   become_method: sudo
   become_user: root
   tasks:
