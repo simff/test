@@ -1,14 +1,20 @@
 ---
 -
   become: true
-  hosts: nodes
+  hosts: p1
   become_method: sudo
   become_user: root
   tasks:
-  - name: Check postgresql version
-    ansible.builtin.shell: ls /usr/lib/postgresql/
-    register: psql_ver
+#  - name: Edit /etc/netplan/00-installer-config.yaml
+#    ansible.builtin.lineinfile:
+#      path: '/etc/netplan/00-installer-config.yaml'
+#      insertafter: '^192.168.1.'
+#      line: '      - 192.168.1.220/24'
 
-  - name: Print
-    debug:
-      msg: "{{ psql_ver.stdout }}"
+  - name: Edit /etc/netplan/00-installer-config.yaml
+    lineinfile:
+      path: /etc/netplan/00-installer-config.yaml
+      insertafter: "^      addresses:"
+      line: "      - {{hostvars['haproxy'].ansible_host}}/24"
+#  - name: Restart netplan
+#    shell: netplan apply

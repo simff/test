@@ -14,7 +14,6 @@
       name:
         - etcd-server
         - etcd-client
-# etcdctl --cluster=true endpoint health
 
   - name: Stop etcd
     service:

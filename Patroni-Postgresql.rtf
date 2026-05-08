@@ -41,9 +41,20 @@ ETCD_ADVERTISE_CLIENT_URLS="{{\field{\*\fldinst{HYPERLINK http://192.168.1.213:2
 ETCD_INITIAL_CLUSTER="p1={{\field{\*\fldinst{HYPERLINK http://192.168.1.211:2380,p2=http://192.168.1.212:2380,p3=http://192.168.1.213:2380 }}{\fldrslt{http://192.168.1.211:2380,p2=http://192.168.1.212:2380,p3=http://192.168.1.213:2380\ul0\cf0}}}}\f0\fs28 "\par
 \par
 \b --------------------------------------------------------------------------------------\par
+{{\field{\*\fldinst{HYPERLINK https://manpages.ubuntu.com/manpages/focal/man1/etcdctl.1.html }}{\fldrslt{https://manpages.ubuntu.com/manpages/focal/man1/etcdctl.1.html\ul0\cf0}}}}\f0\fs28\par
 etcdctl cluster-health\par
-etcdctl --cluster=true endpoint healt\par
-etcdctl member list -w table\par
+etcdctl member list \par
+etcdctl version\par
+etcdctl endpoint health --cluster -w table\par
+etcdctl -w table endpoint status --cluster > etcd-status && nano etcd-status\par
+etcdctl --version\par
+------------------------------------------------------------\par
+\fs36 api v2\fs28\par
+\b0 etcdctl ls /\par
+etcdctl mk /key data\par
+etcdctl get /key\par
+etcdctl rm /key\par
+\b ------------------------------------------------------------\par
 systemctl enable etcd\par
 \par
 apt install postgresql postgresql-contrib -y\par
