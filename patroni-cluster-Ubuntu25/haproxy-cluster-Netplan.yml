@@ -14,14 +14,13 @@
       name:
       - haproxy
 
-  - name: Change /etc/sysctl.conf
-    ansible.builtin.blockinfile:
-      path: /etc/sysctl.conf
-      block: |
-        net.ipv4.ip_nonlocal_bind=1
-
-  - name: Apply system changes
-    shell: sysctl --system
+  - name: Set net.ipv4.ip_nonlocal_bind in sysctl
+    become: yes
+    sysctl:
+      name: net.ipv4.ip_nonlocal_bind
+      value: '1'
+      state: present
+      reload: yes
 
   - name: Edit /etc/netplan/00-installer-config.yaml
     lineinfile:

@@ -1,12 +1,12 @@
 ---
-- name: Disable autoupdate
-  import_playbook: disable-autoupdate.yml
+#- name: Disable autoupdate
+#  import_playbook: disable-autoupdate.yml
 
 - name: Add Hosts
   import_playbook: add-hosts.yml
 
-- name: Etcd-Cluster
-  import_playbook: etcd-cluster.yml
+#- name: Etcd-Cluster
+#  import_playbook: etcd-cluster.yml
 
 - name: Postgresql
   import_playbook: postgresql.yml
@@ -16,6 +16,3 @@
 
 #- name: HaProxy
 #  import_playbook: haproxy-cluster-Netplan.yml
-
-#- name: HaProxy
-#  import_playbook: haproxy-cluster-NetworkManager.yml

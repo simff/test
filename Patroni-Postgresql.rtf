@@ -42,14 +42,29 @@ ETCD_INITIAL_CLUSTER="p1={{\field{\*\fldinst{HYPERLINK http://192.168.1.211:2380
 \par
 \b --------------------------------------------------------------------------------------\par
 {{\field{\*\fldinst{HYPERLINK https://manpages.ubuntu.com/manpages/focal/man1/etcdctl.1.html }}{\fldrslt{https://manpages.ubuntu.com/manpages/focal/man1/etcdctl.1.html\ul0\cf0}}}}\f0\fs28\par
-etcdctl cluster-health\par
+\fs36 v2\fs28\par
+etcdctl --version\par
+\b0 etcdctl version: 3.3.25\par
+API version: 2\par
+\b etcdctl cluster-health\par
 etcdctl member list \par
+----------------------------------------------------------\par
+ETCD_VER=v3.3.25\par
+\par
+----------------------------------------------------------\par
+\fs36 v3\fs28\par
 etcdctl version\par
-etcdctl endpoint health --cluster -w table\par
+Ubuntu 24\par
+\b0 etcdctl version: 3.4.30\par
+API version: 3.4\par
+\b Ubuntu 25\b0\par
+etcdctl version: 3.5.16\par
+API version: 3.5\par
+\b etcdctl endpoint health --cluster -w table\par
 etcdctl -w table endpoint status --cluster > etcd-status && nano etcd-status\par
 etcdctl --version\par
 ------------------------------------------------------------\par
-\fs36 api v2\fs28\par
+\fs36 etcd api v2\fs28\par
 \b0 etcdctl ls /\par
 etcdctl mk /key data\par
 etcdctl get /key\par
@@ -142,7 +157,7 @@ systemctl daemon-reload\par
 systemctl start patroni\par
 systemctl start postgresql\par
 systemctl status patroni\par
-patronictl -c /etc/patroni.yml list\par
+watch patronictl -c /etc/patroni.yml list\par
 \b0 postgresql:password\b\par
 ------------------------------------------------------------------------------------\par
 \b0 DROP TABLE IF EXISTS test CASCADE;\par
