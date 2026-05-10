@@ -25,9 +25,10 @@
     ansible.builtin.shell: ls /usr/lib/postgresql/
     register: psql_ver
 
-#  - name: Print
-#    debug:
-#      msg: "{{psql_ver.stdout}}"
+  - name: Print
+    debug:
+      msg: "{{psql_ver.stdout}}"
 
   - name: Link files
     shell: ln -s /usr/lib/postgresql/{{psql_ver.stdout}}/bin/* /usr/sbin/
+    ignore_errors: yes

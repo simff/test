@@ -1,12 +1,21 @@
 ---
-#- name: Disable autoupdate
-#  import_playbook: disable-autoupdate.yml
+- name: Disable autoupdate
+  import_playbook: disable-autoupdate.yml
 
 - name: Add Hosts
   import_playbook: add-hosts.yml
 
-#- name: Etcd-Cluster
-#  import_playbook: etcd-cluster.yml
+#- name: Etcd-Install-Api-v3
+#  import_playbook: etcd-install-api-v3.yml
+
+- name: Etcd-Install-Api-v2
+  import_playbook: etcd-install-api-v2.yml
+
+- name: Etcd-claster-configure
+  import_playbook: etcd-cluster-configure.yml
+
+#- name: Etcd-claster-Ubuntu22
+#  import_playbook: etcd-cluster-ubuntu22.yml
 
 - name: Postgresql
   import_playbook: postgresql.yml
@@ -14,5 +23,5 @@
 - name: Patroni
   import_playbook: patroni.yml
 
-#- name: HaProxy
-#  import_playbook: haproxy-cluster-Netplan.yml
+- name: HaProxy
+  import_playbook: haproxy-cluster-Netplan.yml

@@ -1,7 +1,7 @@
 ---
 -
   become: true
-  hosts: nodes
+  hosts: nodes,etcd
   become_method: sudo
   become_user: root
   tasks:
@@ -13,3 +13,6 @@
         {{ hostvars['p1'].ansible_host }} {{ hostvars['p1'].inventory_hostname }}
         {{ hostvars['p2'].ansible_host }} {{ hostvars['p2'].inventory_hostname }}
         {{ hostvars['p3'].ansible_host }} {{ hostvars['p3'].inventory_hostname }}
+        {{ hostvars['e1'].ansible_host }} {{ hostvars['e1'].inventory_hostname }}
+        {{ hostvars['e2'].ansible_host }} {{ hostvars['e2'].inventory_hostname }}
+        {{ hostvars['e3'].ansible_host }} {{ hostvars['e3'].inventory_hostname }}

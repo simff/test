@@ -42,7 +42,38 @@ ETCD_INITIAL_CLUSTER="p1={{\field{\*\fldinst{HYPERLINK http://192.168.1.211:2380
 \par
 \b --------------------------------------------------------------------------------------\par
 {{\field{\*\fldinst{HYPERLINK https://manpages.ubuntu.com/manpages/focal/man1/etcdctl.1.html }}{\fldrslt{https://manpages.ubuntu.com/manpages/focal/man1/etcdctl.1.html\ul0\cf0}}}}\f0\fs28\par
-\fs36 v2\fs28\par
+\fs36 v2\par
+{\fs28{\field{\*\fldinst{HYPERLINK https://disk.yandex.ru/d/edvE0VwgAdORKQ }}{\fldrslt{https://disk.yandex.ru/d/edvE0VwgAdORKQ\ul0\cf0}}}}\f0\fs28\par
+tar xzf etcd-v3.3.25-linux-amd64.tar.gz\par
+mv etcd etcdctl /usr/local/bin\par
+ nano /usr/lib/systemd/system/etcd.service\par
+\b0 [Unit]\par
+Description=etcd - highly-available key value store\par
+Documentation=https://etcd.io/docs\par
+Documentation=man:etcd\par
+After=network.target\par
+Wants=network-online.target\par
+\par
+[Service]\par
+Environment=DAEMON_ARGS=\par
+Environment=ETCD_NAME=%H\par
+Environment=ETCD_DATA_DIR=/var/lib/etcd/default\par
+EnvironmentFile=-/etc/default/%p\par
+Type=notify\par
+User=etcd\par
+PermissionsStartOnly=true\par
+#ExecStart=/bin/sh -c "GOMAXPROCS=$(nproc) /usr/bin/etcd $DAEMON_ARGS"\par
+ExecStart=/usr/bin/etcd $DAEMON_ARGS\par
+Restart=on-abnormal\par
+#RestartSec=10s\par
+LimitNOFILE=65536\par
+\par
+[Install]\par
+WantedBy=multi-user.target\par
+Alias=etcd2.service\par
+\b systemctl daemon-reload\par
+systemctl start etcd\par
+systemctl enable etcd\par
 etcdctl --version\par
 \b0 etcdctl version: 3.3.25\par
 API version: 2\par
