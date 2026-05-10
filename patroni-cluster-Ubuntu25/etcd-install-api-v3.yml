@@ -10,7 +10,7 @@
       update_cache: yes
 
   - name: Install etcd
-     apt:
+    apt:
       name:
         - etcd-client
         - etcd-server
