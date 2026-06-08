@@ -1,0 +1,97 @@
+---
+-
+  become: true
+  hosts: etcd
+  become_method: sudo
+  become_user: root
+  tasks:
+#  - name: Update APT
+#    apt:
+#      update_cache: yes
+
+#  - name: Install pip curl
+#    apt:
+#      name:
+#        - curl
+#        - pip
+
+
+#  - name: Install yadisk-direct
+#    shell: pip3 install wldhx.yadisk-direct --break-system-packages
+#    ignore_errors: yes
+
+#  - name: Get etcd-v3.3.25-linux-amd64.tar.gz
+#    shell: curl -L $(yadisk-direct https://disk.yandex.ru/d/edvE0VwgAdORKQ) -o etcd-v3.3.25-linux-amd64.tar.gz
+
+  - name: Get etcd-v3.3.25-linux-amd64.tar.gz
+# wget https://github.com/etcd-io/etcd/releases/download/v3.3.25/etcd-v3.3.25-linux-amd64.tar.gz
+    get_url:
+      url: https://github.com/etcd-io/etcd/releases/download/v3.3.25/etcd-v3.3.25-linux-amd64.tar.gz
+      dest: /root/etcd-v3.3.25-linux-amd64.tar.gz
+
+  - name: Extract archive
+    shell: tar xzf etcd-v3.3.25-linux-amd64.tar.gz
+    ignore_errors: yes
+
+  - name: Copy etcd
+    ansible.builtin.copy:
+      src: /root/etcd-v3.3.25-linux-amd64/etcd
+      dest: /usr/bin/etcd
+      remote_src: yes
+      mode: '0755'
+
+  - name: Copy etcdctl
+    ansible.builtin.copy:
+      src: /root/etcd-v3.3.25-linux-amd64/etcdctl
+      dest: /usr/bin/etcdctl
+      remote_src: yes
+      mode: '0755'
+
+  - name: Ensure the group etcd
+    group:
+      name: etcd
+      state: present
+
+  - name: Create user etcd
+    ansible.builtin.user:
+      name: etcd
+      state: present
+      group: etcd
+      shell: /usr/sbin/nologin
+      home: /var/lib/etcd/
+
+  - name: Create etcd.service
+    copy:
+      dest: "/lib/systemd/system/etcd.service"
+      content: |
+          [Unit]
+          Description=etcd - highly-available key value store
+          Documentation=https://etcd.io/docs
+          Documentation=man:etcd
+          After=network.target
+          Wants=network-online.target
+
+          [Service]
+          Environment=DAEMON_ARGS=
+          Environment=ETCD_NAME=%H
+          Environment=ETCD_DATA_DIR=/var/lib/etcd/default
+          EnvironmentFile=-/etc/default/%p
+          Type=idle
+          User=etcd
+          PermissionsStartOnly=true
+          #ExecStart=/bin/sh -c "GOMAXPROCS=$(nproc) /usr/bin/etcd $DAEMON_ARGS"
+          ExecStart=/usr/bin/etcd $DAEMON_ARGS
+          Restart=on-abnormal
+          #RestartSec=10s
+          LimitNOFILE=65536
+
+          [Install]
+          WantedBy=multi-user.target
+          Alias=etcd2.service
+
+  - name: restarted service etcd
+    ansible.builtin.systemd_service:
+      state: restarted
+      daemon_reload: true
+      name: etcd
+      enabled: yes

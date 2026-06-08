@@ -1,0 +1,15 @@
+---
+-
+  become: true
+  hosts: etcd
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Add host /etc/hosts
+    copy:
+      dest: "/etc/hosts"
+      content: |
+        127.0.0.1 localhost
+        {{ hostvars['e1'].ansible_host }} {{ hostvars['e1'].inventory_hostname }}
+        {{ hostvars['e2'].ansible_host }} {{ hostvars['e2'].inventory_hostname }}
+        {{ hostvars['e3'].ansible_host }} {{ hostvars['e3'].inventory_hostname }}
