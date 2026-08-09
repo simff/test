@@ -4,6 +4,3 @@
 
 - name: Etcd-cluster-ubuntu22
   import_playbook: etcd-cluster-ubuntu22.yml
-
-- name: Grafana-Prometheus2026
-  import_playbook: grafana-prometheus2026.yml

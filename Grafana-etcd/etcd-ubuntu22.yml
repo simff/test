@@ -17,6 +17,6 @@
   - name: Restart etcd
     service:
       name: "etcd"
-#      daemon_reload: true
+      daemon_reload: true
       state: "restarted"
       enabled: "yes"

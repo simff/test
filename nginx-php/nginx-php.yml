@@ -1,0 +1,76 @@
+---
+-
+  become: true
+  hosts: all
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+  - name: Install Nginx-PHP
+    apt:
+      name:
+        - nginx
+        - php-fpm
+
+  - name: Change /etc/nginx/sites-available/default
+    lineinfile: dest=/etc/nginx/sites-available/default
+                regexp='^location / {'
+                insertbefore=BOF
+                line='# Added by Ansible'
+
+  - name: Insert a block before a specific line
+    ansible.builtin.blockinfile:
+      path: /etc/nginx/sites-available/default
+      block: |
+        location ~ \.php$ {
+          fastcgi_index index.php;
+          fastcgi_pass unix:/var/run/php/php-fpm.sock;
+          include fastcgi_params;
+          fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        }
+      insertafter: 'server_name _;'
+
+  - name: Restarted service Nginx
+    ansible.builtin.systemd_service:
+      state: restarted
+      daemon_reload: true
+      name: nginx
+      enabled: yes
+
+  - name: Remove /var/www/html/index.nginx-debian.html
+    ansible.builtin.file:
+      path: /var/www/html/index.nginx-debian.html
+      state: absent
+
+  - name: Create /var/www/html/index.html
+    copy:
+      dest: "/var/www/html/index.html"
+      content: |
+        <!DOCTYPE html>
+        <html>
+        <head>
+        <title>Welcome to nginx!</title>
+        </head>
+        <body>
+          <h1 style="color: green; text-align: center;">Welcome to nginx!</h1>
+          <form style="color: green; text-align: center;" action="/test.php" method="post">
+          <input style="color: red;" type="submit" value="Check Ip">
+          </form>
+          </body>
+          </html>
+
+  - name: Create /var/www/html/test.php
+    copy:
+      dest: "/var/www/html/test.php"
+      content: |
+        <?php
+        # phpinfo();
+        $output = shell_exec('echo "My Ip Address: " $(hostname -I)');
+        echo '<p style="color: green; font-size: 48px;">' . $output . '</p>';
+        $output = shell_exec('echo "From Ip Address: " $(tail -n 1 /var/log/nginx/access.log | sed "s/ .*//")
+        ');
+        echo '<p style="color: red; font-size: 48px;">' . $output . '</p>';
+        ?>
