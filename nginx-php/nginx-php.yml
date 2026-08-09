@@ -15,13 +15,7 @@
         - nginx
         - php-fpm
 
-  - name: Change /etc/nginx/sites-available/default
-    lineinfile: dest=/etc/nginx/sites-available/default
-                regexp='^location / {'
-                insertbefore=BOF
-                line='# Added by Ansible'
-
-  - name: Insert a block before a specific line
+  - name: Insert a php configure block 
     ansible.builtin.blockinfile:
       path: /etc/nginx/sites-available/default
       block: |
