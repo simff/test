@@ -1,0 +1,22 @@
+---
+-
+  become: true
+  hosts: hosts
+  become_method: sudo
+  become_user: root
+  tasks:
+  - name: Insert a php configure block
+    ansible.builtin.blockinfile:
+      path: /etc/nginx/sites-available/default
+      block: |
+        server {
+          listen 80 default_server;
+          server_name _;
+          return 301 https://$host$request_uri;
+          }
+      insertbefore: 'server {'
+
+  - name: Restarted service Nginx
+    ansible.builtin.systemd_service:
+      state: restarted
+      name: nginx

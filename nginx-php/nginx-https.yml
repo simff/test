@@ -1,0 +1,113 @@
+---
+-
+  become: true
+  hosts: hosts
+  become_method: sudo
+  become_user: root
+  vars_prompt:
+    - name: caname
+      prompt: Common Name
+      private: false
+    - name: capassword
+      prompt: What is ca.crt password?
+
+  tasks:
+  - name: Update APT
+    apt:
+      update_cache: yes
+
+# Works with Python version <=3.12 (Ubuntu 24)
+
+  - name: Install python3-pip
+    apt:
+      name:
+        - python3-pip
+
+  - name: Add pexpect for Python3
+    shell: pip3 install pexpect --break-system-packages
+
+# --------------------------------------------
+
+  - name: Install easy-rsa
+    apt:
+      name:
+        - easy-rsa
+
+  - name: Delete content & directory
+    ansible.builtin.file:
+      state: absent
+      path: /etc/nginx/easy-rsa/
+
+  - name: make-cadir
+    shell: make-cadir /etc/nginx/easy-rsa
+
+  - name: Init-pki
+    shell: echo -ne yes '\n' |/etc/nginx/easy-rsa/easyrsa init-pki
+    args:
+      chdir: /etc/nginx/easy-rsa/
+
+  - name: Make ca.crt
+    command: bash -lc "cd /etc/nginx/easy-rsa/ && echo -ne {{ capassword }} '\n' {{ capassword }} '\n' {{caname}} '\n' |/etc/nginx/easy-rsa/easyrsa build-ca"
+
+  - name: Copy ca.crt
+    ansible.builtin.copy:
+      src: /etc/nginx/easy-rsa/pki/ca.crt
+      dest: /etc/nginx/ca.crt
+      remote_src: yes
+
+  - name: Make server.key
+    command: bash -lc "cd /etc/nginx/easy-rsa/ && echo -ne {{caname}} '\n' |./easyrsa gen-req {{caname}} nopass"
+
+  - name: Copy server.key
+    ansible.builtin.copy:
+      src: /etc/nginx/easy-rsa/pki/private/{{caname}}.key
+      dest: /etc/nginx/{{caname}}.key
+      remote_src: yes
+
+  - name: Create /etc/nginx/sites-available/default
+    copy:
+      dest: "/etc/nginx/sites-available/default"
+      content: |
+        server {
+          listen              80;
+          listen              443 ssl;
+          server_name         _;
+          keepalive_timeout   70;
+          ssl_certificate     /etc/nginx/{{caname}}.crt;
+          ssl_certificate_key /etc/nginx/{{caname}}.key;
+          ssl_protocols       TLSv1.2 TLSv1.3;
+          ssl_ciphers         HIGH:!aNULL:!MD5;
+          root /var/www/html;
+          index index.html index.htm index.nginx-debian.html;
+        location ~ \.php$ {
+          fastcgi_index index.php;
+          fastcgi_pass unix:/var/run/php/php-fpm.sock;
+          include fastcgi_params;
+          fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        }
+        }
+
+# Works with Python version <=3.12 (Ubuntu 24)
+
+  - name: Make server.crt
+    ansible.builtin.expect:
+      chdir: /etc/nginx/easy-rsa/
+      command: ./easyrsa sign-req server {{caname}}
+      responses:
+        Confirm request details: "yes"
+        Enter pass phrase for /etc/nginx/easy-rsa/pki/private/ca.key: "{{capassword}}"
+
+  - name: Copy server.crt
+    ansible.builtin.copy:
+      src: /etc/nginx/easy-rsa/pki/issued/{{caname}}.crt
+      dest: /etc/nginx/{{caname}}.crt
+      remote_src: yes
+
+  - name: Restarted service Nginx
+    ansible.builtin.systemd_service:
+      state: restarted
+#      daemon_reload: true
+      name: nginx
+#      enabled: yes
+
+# -----------------------------------------------------

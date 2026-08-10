@@ -1,0 +1,9 @@
+---
+- name: Install Nginx PHP
+  import_playbook: nginx-php.yml
+
+- name: Create HTTPS Access
+  import_playbook: nginx-https.yml
+
+- name: Create HTTPS Access Only
+  import_playbook: https-only.yml

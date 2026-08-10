@@ -1,7 +1,7 @@
 ---
 -
   become: true
-  hosts: all
+  hosts: hosts
   become_method: sudo
   become_user: root
   tasks:
@@ -15,7 +15,7 @@
         - nginx
         - php-fpm
 
-  - name: Insert a php configure block 
+  - name: Insert a php configure block
     ansible.builtin.blockinfile:
       path: /etc/nginx/sites-available/default
       block: |
