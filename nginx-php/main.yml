@@ -1,7 +1,7 @@
 ---
 - name: Install Nginx PHP
   import_playbook: nginx-php.yml
-
+# Works with Python version <=3.12 (Ubuntu 24)
 - name: Create HTTPS Access
   import_playbook: nginx-https.yml
 

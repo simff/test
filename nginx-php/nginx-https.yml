@@ -10,7 +10,7 @@
       private: false
     - name: capassword
       prompt: What is ca.crt password?
-
+#  gather_facts: false
   tasks:
   - name: Update APT
     apt:
@@ -106,8 +106,5 @@
   - name: Restarted service Nginx
     ansible.builtin.systemd_service:
       state: restarted
-#      daemon_reload: true
       name: nginx
-#      enabled: yes
-
 # -----------------------------------------------------
