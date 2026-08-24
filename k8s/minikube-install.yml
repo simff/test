@@ -10,8 +10,8 @@
       dest: "/etc/hosts"
       content: |
         127.0.0.1 localhost
-        192.168.1.95 minikube.my
-        192.168.1.90 gitlab.my
+        192.168.1.24 minikube.my
+        192.168.1.24 gitlab.my
 
 #  - name: Selinux Disabled
 #    lineinfile: dest=/etc/selinux/config
@@ -43,7 +43,7 @@
                 line='ClientAliveCountMax 60'
   - name: Restart service sshd
     ansible.builtin.service:
-      name: sshd
+      name: ssh
       state: restarted
   - name: Update APT
     apt:
@@ -78,4 +78,3 @@
 
   - name: minikube start
     shell: minikube start --cpus=2 --cni=flannel --kubernetes-version=stable --memory=2g --force
-
